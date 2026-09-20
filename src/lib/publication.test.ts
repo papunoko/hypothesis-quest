@@ -24,6 +24,7 @@ test("公開中はAPIだけ制限し、超過429・検査障害503・他Origin40
   const env = { PUBLIC_UNTIL: PUBLICATION_END, READ_LIMITER: { limit: async () => ({ success: true }) } };
   assert.equal(await publicationGate(request, env, now), null);
   assert.equal(await publicationGate(new Request("https://ebiharadev.org/"), env, now), null);
+  assert.equal(await publicationGate(new Request("https://ebiharadev.org/api/support", { method: "POST" }), { ...env, AI_LIMITER: { limit: async () => { throw new Error("support must use the read limiter"); } } }, now), null);
   assert.equal((await publicationGate(request, { ...env, READ_LIMITER: { limit: async () => ({ success: false }) } }, now))?.status, 429);
   assert.equal((await publicationGate(request, { PUBLIC_UNTIL: PUBLICATION_END }, now))?.status, 503);
   assert.equal((await publicationGate(new Request(request, { headers: { Origin: "https://elsewhere.example" } }), env, now))?.status, 403);

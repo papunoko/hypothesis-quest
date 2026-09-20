@@ -7,7 +7,7 @@ test("質問の鏡と場合によるの比較は、未入力の軸を見せな�
   await page.route("**/api/predict", (route) => route.fulfill({ json: { reading, kind: "question", question: answerQuestion("types"), results: [], next: null } }));
   await page.goto("/"); await page.getByRole("button", { name: "このイシューを確かめる →" }).click();
   await page.getByRole("textbox").fill("型は関係ある？");
-  await expect(page.getByText("質問として読んでいます", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("入力の種別")).toHaveText("質問");
   await expect(page.getByRole("meter")).toHaveCount(0);
   await expect(page.locator(".reading-preview")).not.toContainText("個数");
   await page.getByRole("button", { name: "この質問で調べる →" }).click();

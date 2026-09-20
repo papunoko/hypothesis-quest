@@ -19,7 +19,8 @@ tg (tgrep)を使うこと。MS製のインデックス付きgrep。grepは使用
 - **スキル**（`.claude/skills/`、Codex は `.agents/skills/`）: `subject-forge`（題材を作る手順）、`journey-check`（体験を批評する固定の問い）、外部の `jev-lint` / `game-design-reality-check` / `stress-testing-game-concepts`。企画やジャーニーを変える前後で `journey-check` を、題材を足すときは `subject-forge` を使う。
 - **自然言語リント** `npm run lint:jev:check`（jev-lint、ルールは `rules/`）。Jev に投げる問いが1問1判断か、LLM の出力が判定に流れていないか、相棒の台詞が答えを漏らしていないか、journey/concept の体験主張に観測があるか。finding は候補であって判定ではない。読んで、コードを直すか、ラベルを足して `rules/*/*/expect.yml` に残す。ルールの文・基準・状態を変えたら `jev-lint eval <dir> --repeat 2 --accept` で baseline を取り直す。
 - **固定戦略ボット** `npm run harness:stress`、**帳面レポート** `npm run harness:notebook`、**題材検査** `npm run subject:check`。結果は `docs/eval/` に日付付きで残す（消さない。批評はこの記録を入力にする）。
-- Windows では jev-lint の ast-grep 呼び出しが壊れているので、必ず `npm run lint:jev -- <args>`（ラッパー）経由で呼ぶ。`npx jev-lint` 直叩きは TypeScript ルールが全部落ちる。
+- Windows では jev-lint の ast-grep 呼び出しが壊れているので、必ず `npm run lint:jev -- <args>`（ラッパー）経由で呼ぶ。ラッパーは PATH の `ast-grep`（winget 版）を優先して渡す。`npx jev-lint` 直叩きは TypeScript ルールが全部落ちる。
+- `subject:mine` は `GITHUB_TOKEN="$(gh auth token)"` を前置して呼ぶ（`gh` はログイン済み）。トークンを表示・保存しない。
 
 
 

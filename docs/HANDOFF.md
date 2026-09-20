@@ -1,6 +1,42 @@
 # 引継ぎメモ
 
-## 次にやること — 公開品質の3件（2026-09-20 夜・未着手、方針のみ確定）
+## 入力欄まわりの作り直し（2026-09-20 深夜・ローカル検証済み・未デプロイ・未コミット）
+
+ユーザーのスクショ批評（「最初の仮説が出ない。何を書けばいいかわからないが最初から出ているのはもったいない。Jev で経過時間・入力・スクロール・マウスから支援を出せ。『こう読んでいます』は不要、ラベルと核心度 0〜1 で。ヒントは何種類か。最終回答リンクはボタンに」）への対応。
+
+- **助け舟** `src/lib/support.ts` + `src/app/api/support/route.ts` + `src/app/support-card.tsx`。画面（`page.tsx`）は事例表示から15秒後、5秒おきに条件を見て、入力停止6秒以上・前回12秒以上のときだけ数値シグナルを POST。Jev は Noul「止まっているか」＋Choice「start/stuck/explore/send/none」。出す条件はコード（paused≥0.6、種別≥0.5、explore は60秒以降）。閉じた種別は同じ事例で再表示しない。失敗時は1分黙る。入力文は送らない（単体テストで保証）。
+- **鏡** の見出しは種別チップ＋核心度（`max(types, singleFast)`、0文字なら0）。棒は折りたたみ「読み取りの内訳」。未確定 verdict の文言もそれに合わせた。
+- **ボタン化**: 「観察を区切ってレビューを書く」「提出したレビューと回答を見る」を `ghost` ボタンに。secondary-actions に「ヒント」（手動で助け舟を開く）。
+- **レート制限**: `/api/support` は READ_LIMITER（60/分）側。`publication.ts` と単体テスト。
+- 検証: 単体 38/38（`npm test`、うち support 4件）、TypeScript、Playwright UI 15/15（`support.spec.ts` 2件追加、`lru.spec.ts` は内訳を開いてから棒を見る、`questions.spec.ts` はチップ「質問」を見る）、PC/スマホのスクショ確認、jev-lint 新規4ファイル 0 findings、実 Jev プローブ `npm run harness:support` 9/9（[eval/support-probe-2026-09-20.md](eval/support-probe-2026-09-20.md)）。
+- 未検証: 人の行動での出るタイミング（閾値は仮）。核心度の数値表示が答えの方向を漏らすか（U-32）。ローカル Worker（8787）は旧ビルドのまま。Worker ビルド・本番デプロイ・コミットは未実施。
+- 関連 docs: journey §2 冒頭、concept §5、decisions 表 F、backlog U-40〜U-43 / U-32 / J-13、deployment レート制限、harness §4。
+
+## Playwright＋文脈分離subagent試遊（2026-09-20 夜）
+
+ユーザー依頼で試遊役2体（forkなし）＋独立監査役。ローカル8787、各4送信、実Jev/LLM。Aは7一致＋H1、BはL5読み取り未確定で「あと少し」。両者とも自発的にレビューを終えた。試遊中のコード/ビルド変更・攻略助言はなし。記録は [eval/blind-2026-09-20/report.md](eval/blind-2026-09-20/report.md)。
+
+- 監査で確認: H1を確かめた後も未確認一覧に同じ例が残る表示不整合。鏡が「intなど」を「int・str」に具体化する表示差。生成文に `maintainerResponse` が出現。
+- 調査候補: 特定質問→一般比較、元質問と逆極性の問いへの「はい」、提出時の照合と生成解説の関係。判定矛盾と即断せず元質問/回答対象を照合する。
+- **初見人間の試遊ではない**。両者にPython既有知識あり、主材料はbody.innerText/ariaSnapshot（viewport外含む）。Aは画像を試遊中に視認せず、Bは最後だけ。視覚的UI/スマホの発見しやすさの証拠にはしない。AはREPL reset後に再開、traceは再開後のみ。Bは一部連続操作の事後説明を訂正。訂正も記録に保持。
+- 次は必要に応じてスクリーンショットのみの試遊。今回の発見は未修正・未デプロイ。生traceには合成入力/session情報が含まれ得るので、公開/コミット前に確認する。
+
+## 公開品質の3件を実装（2026-09-20 夜・未デプロイ）
+
+- F-01: `predictLru` に singleFast≥0.6 / types<0.6 の限定的な解釈規則。一般型条件の明示・他軸の曖昧さは残し、生の読み取りは変えない。境界回帰テストあり。
+- F-02: false基準の追記だけでは報告者のtypesが0.35となり未確定。問いも「異なる型なら別呼び出しとする一般則を主張しているか」に限定した。最終版の `subject-check-lru-cache-2026-09-20T13-49-50-285Z.md` は5項目通過。真相7/7、報告者はL5 mismatch/L6 match。
+- F-03: L2/L4/L7の相棒文を比較への問いに変更。対象のjev-lintは3パス16 subjectsで0 findings（`jev-lint-2026-09-20-quality.json`）。ルール自体は変更していない。
+- H-08: `LRU_HOLDOUT` H1（f(1.0)→f(True)）をクリアした提出の下に追加。予想3択を押すまで実測を出さず、保存・送信しない。提出が切り替われば予想はリセット。7事例の選択・質問・クリア条件・生成根拠には混ぜない。CPython 3.12.3で記憶/本体1回を再実測、verify:lruは計9件一致。
+- 検証済み: 単体34/34、TypeScript、Next devのPlaywright UI13/13、PC/スマホ画面確認、Workerビルド。ローカルWorker上の統合検証はこの下に追記する。本番の期限・Route・D1・Secretsは変更していない。
+- ローカルWorker（8787）のPlaywright **18/18**（UI13＋実Jev/LLM5）通過。真相の提出→クリア→H1、質問→ヒント→提出→履歴復元、セッション分離・重複提出も確認した。8787は試せる状態で起動中。コミット・本番デプロイは未実施。
+- 最終版eval:lruは11/14（`lru-2026-09-20T13-49-15-200Z.json`）。途中案12/14は最終値ではない。残りは順番の否定、複合例外のorder、言い換えの弱いform/types。評価セットJ-01/J-02は未完。
+- stress（`stress-2026-09-20T13-49-46-479Z.md`）は理解者5手7/7、報告者の割れを確認。**終了コード1は詰め込み屋3手7/7の検出**でありF-01再発ではない。その最終文は正しい特例を含むので、理解なしの支配方策とは未確定。列挙者は6/7、orderの読みが残る（F-05/F-06）。
+- 全体lintは16候補（体験主張13、注文ダミー台詞2、注文画面のLLM判定混入候補1）。全体cleanとはしない。記録 `jev-lint-2026-09-20-full-quality.json`、批評 `journey-check-2026-09-20-quality.md`。
+- backlogのJ-03〜05/T-61/D-06の完了漏れを実装から修正。次は案Bの初見2人試験、F-04/H-07、残る読み取り評価。案Bの導入・page.tsxは変更していない。
+- 同日再実行で旧記録を消さないようstress/subject:checkを時刻付きファイル名に変更。eval:lruも生の読み取り・期待選択をJSON保存する。
+- `gh` / `ast-grep` 導入を確認。`scripts/harness/jev-lint.mts` のPATH探索追加と題材候補収集は別作業の変更として保持。PowerShellでは引数がnpm側に吸われる場合があり、`npm.cmd run lint:jev -- ...` でラッパーに渡せた。
+
+## 着手前の方針記録 — 公開品質の3件（2026-09-20 夜）
 
 ハッカソンは終了。本番は https://ebiharadev.org で公開中（下記「9月末までの本番公開」）。ユーザーの選択で、製品側の残りは次の3件をこの順で進める。**コードはまだ触っていない**（下調べのみ）。製品を変えたら `npm run deploy` は本番を出したセッションの手順（deployment.md）に従うこと。
 
@@ -37,8 +73,8 @@
 
 - 実体: `scripts/harness/`（固定戦略ボット・帳面レポート・jev-lint ラッパー）、`scripts/subject/`（mine / rank / check / specs）、`rules/`（jev-lint ルール4本＋commit ルールの写し、fixtures と baseline 付き）、`.jev-lint.yaml`、スキル `.claude/skills/{subject-forge,journey-check}` と外部3本（`jev-lint`、`game-design-reality-check`、`stress-testing-game-concepts`。`skills` CLI で `.agents/skills/` に入れ `.claude/skills/` へ symlink、`skills-lock.json` が台帳）
 - 初回結果は `docs/eval/`（stress / notebook / subject-check / jev-lint、すべて 2026-09-20）。**製品側の finding は F-01〜F-05**。要点: 真相の一文が `types` 軸 0.36〜0.39 のせいで L6「解釈の確認」になりクリアしない（ボットと題材検査が同じ点を指した）。相棒の台詞 L4/L7 が仕組みを示唆。体験主張に観測がない節が journey 7・concept 5
-- 未実行: `subject:mine` / `subject:rank` は構文確認のみで実 API では回していない（GitHub 検索の疎通は確認済み）。`subject:check` は lru 固定の結線
-- Windows の注意: jev-lint は必ず `npm run lint:jev -- …` 経由（ラッパーが ast-grep.exe を渡す）。Markdown ルールの expect.yml と `eval --replay` のラベル突き合わせは効かない（harness.md §5）
+- `subject:mine` / `subject:rank` は 2026-09-20 深夜に実走済み（cpython 40 件 + 対照 bpo-39554。対照が 0.74 で最上位。既定クエリの弱点とクエリ案は `docs/eval/subject-rank-2026-09-20-notes.md`）。`gh` はログイン済みで `GITHUB_TOKEN="$(gh auth token)"` を前置すればレート制限を避けられる。`subject:check` は lru 固定の結線
+- Windows の注意: jev-lint は必ず `npm run lint:jev -- …` 経由（ラッパーが PATH の winget 版 `ast-grep.exe` を渡す。2026-09-20 深夜に 5 ルール読み込み・170 subjects の check を確認、記録は `docs/eval/jev-lint-2026-09-20-rerun.md`）。Markdown ルールの expect.yml と `eval --replay` のラベル突き合わせは効かない（harness.md §5）
 - 未コミット。他セッションの Workers 移行差分と混在しているので、切り方は指示を待つ
 
 ## 既存サブドメインの一時停止（2026-09-20・完了）

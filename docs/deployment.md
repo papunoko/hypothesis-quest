@@ -7,6 +7,8 @@
 - 公開バージョン: `1027fad9-af84-4f0e-a956-cb42e1b285a6`
 - 期限: **2026-10-01 00:00 JST**（9月30日いっぱい）。本番bindingも確認済み。
 
+2026-09-20 夜の品質修正（F-01/F-02/F-03/H-08）は**ローカルのみ、未デプロイ**。Workerビルド・ローカルWorkerのPlaywright18件（実Jev/LLM5件を含む）通過。本番バージョン・期限・Route・Secretsに変更なし。
+
 ## 構成
 
 - `wrangler.jsonc`: Worker `hypothesis-quest`、Worker Route `ebiharadev.org/*`（apexのみ）。既存のプロキシDNSを維持。workers.dev/プレビューURLは無効。
@@ -22,7 +24,7 @@
 - `custom-worker.ts` がNext.jsより先に日時を確認。期限以降は画面・静的ファイル・APIすべて410。期限設定が欠けたり不正なら閉じる。`assets.run_worker_first=true` で静的アセットからの迂回も防ぐ。
 - 期限中のレスポンスもno-store。すでに開いた画面を消すことはできないが、期限後の新規API呼び出しは通さない。処理中だった外部API通信は完了し得るが、期限後に戻るアプリ応答は410へ置換する。
 - Worker/DNS/D1/Secretsそのものは自動削除しない。終了ページの配信とデータ保管は残る。撤去・DB削除は別途ユーザー確認して行う。
-- IP単位で入力読み取り60回/分、その他POST API20回/分。Cloudflare拠点単位のレート制限で、世界全体の厳密な課金上限ではない。超過429、制限bindingの障害は503。公開は匿名。
+- IP単位で入力読み取り（`/api/read` と、2026-09-20 深夜に追加した `/api/support`。どちらも Jev のみ）60回/分、その他POST API20回/分。`/api/support` は画面側で事例表示から15秒後、以後12秒以上の間隔、入力停止6秒未満は送らないので、1人あたり最大5回/分程度。Cloudflare拠点単位のレート制限で、世界全体の厳密な課金上限ではない。超過429、制限bindingの障害は503。公開は匿名。
 - ローカルの `next dev` はこの外側のWorkerゲートを通らない。期限・制限の検証は `wrangler dev` / Workersで行う。
 
 ## ローカル開発

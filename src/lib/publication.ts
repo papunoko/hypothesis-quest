@@ -23,7 +23,8 @@ export async function publicationGate(request: Request, env: PublicationEnv, now
   if (request.method !== "POST" || !url.pathname.startsWith("/api/")) return null;
   const origin = request.headers.get("origin");
   if (origin && origin !== url.origin) return Response.json({ error: "別サイトからは送信できません。" }, { status: 403, headers: { "Cache-Control": "no-store" } });
-  const limiter = url.pathname === "/api/read" ? env.READ_LIMITER : env.AI_LIMITER;
+  // /api/read と /api/support は Jev だけを呼ぶ軽い入力読み取り。LLM を呼ぶ POST は AI_LIMITER。
+  const limiter = url.pathname === "/api/read" || url.pathname === "/api/support" ? env.READ_LIMITER : env.AI_LIMITER;
   try {
     if (!limiter) throw new Error("Rate limiter binding missing");
     const { success } = await limiter.limit({ key: request.headers.get("CF-Connecting-IP") || "local" });

@@ -173,3 +173,24 @@ details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
   .lru-app .section-heading { margin-bottom: 4px; }
   .lru-app .case-map { margin-top: 4px; }
 }
+
+/* ---- 2026-09-20 深夜: 鏡の見出しを「種別＋核心度」に、助け舟は止まり方から ---- */
+.lru-app .reading-heading { align-items: center; gap: 10px; }
+.lru-app .input-chip { display: inline-block; padding: 2px 10px; border-radius: 40px; background: #e5ede6; color: #2f5d4d; font-size: 12px; font-weight: 650; min-width: 44px; text-align: center; }
+.lru-app .input-chip[data-kind="question"] { background: #e2ebf6; color: #2c4f80; }
+.lru-app .input-chip[data-kind="none"], .lru-app .input-chip[data-kind="composing"], .lru-app .input-chip[data-kind="unsure"] { background: #ecece8; color: var(--muted); font-weight: 500; }
+.lru-app .core-meter { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #5a625d; }
+.lru-app .core-meter i { display: inline-block; width: 72px; height: 5px; background: #e8ece7; border-radius: 4px; overflow: hidden; }
+.lru-app .core-meter b { display: block; height: 100%; background: #598875; transition: width .25s; }
+.lru-app .reading-detail { margin-top: 6px; }
+.lru-app .reading-detail summary { font-size: 12px; }
+.lru-app .reading-detail .axis:first-of-type { margin-top: 8px; }
+.lru-app .support-card { margin-top: 12px; padding: 14px 16px; border: 1px solid #d9e3d9; border-left: 3px solid var(--accent); border-radius: 10px; background: #f3f7f2; }
+.lru-app .support-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.lru-app .support-card h3 { font-size: 14px; margin: 0; }
+.lru-app .support-card p { margin: 6px 0 0; }
+.lru-app .support-card blockquote { margin: 10px 0 2px; padding: 10px 12px; background: #fff; border: 1px solid #dfe6dd; border-radius: 6px; font-size: 14px; }
+.lru-app .support-card .row { margin-top: 8px; }
+.lru-app .support-card .row .ghost { font-size: 13px; padding: 7px 12px; }
+.lru-app .secondary-actions .finish-button { width: 100%; margin-top: 6px; font-size: 13px; }
+.lru-app .notebook > .ghost { margin-top: 12px; font-size: 13px; }

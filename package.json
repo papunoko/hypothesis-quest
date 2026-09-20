@@ -22,6 +22,7 @@
     "test:e2e:live": "playwright test --project=live",
     "harness:stress": "node --env-file=.dev.vars scripts/harness/stress-bots.mts",
     "harness:notebook": "node scripts/harness/notebook-report.mts",
+    "harness:support": "node --env-file=.dev.vars scripts/harness/support-probe.mts",
     "subject:mine": "node --env-file=.dev.vars scripts/subject/mine.mts",
     "subject:rank": "node --env-file=.dev.vars scripts/subject/rank.mts",
     "subject:check": "node --env-file=.dev.vars scripts/subject/check.mts",

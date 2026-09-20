@@ -71,6 +71,7 @@ test("ライブ読み取りはIME中に送らず、古い応答を表示しな�
   await textbox.fill("最初の仮説");
   await expect.poll(() => texts.includes("最初の仮説")).toBe(true);
   await textbox.fill("新しい仮説");
+  await page.getByText("読み取りの内訳", { exact: true }).click(); // 内訳は折りたたみ。開いてから棒を見る
   await expect(page.getByRole("meter", { name: "省略・位置・名前の書き方を区別する" })).toHaveAttribute("aria-valuenow", "0.95");
   await page.waitForTimeout(850); // Old response has now arrived or been aborted.
   await expect(page.getByRole("meter", { name: "省略・位置・名前の書き方を区別する" })).toHaveAttribute("aria-valuenow", "0.95");

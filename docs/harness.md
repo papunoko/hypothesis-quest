@@ -4,6 +4,8 @@
 原則: **測ることはスクリプト、読んで書いて決めることはスキル。** スクリプトだけだと判断が残らず、スキルだけだと毎回ぶれる。スキルはスクリプトを呼ぶ手順書として置く。
 結果は `docs/eval/` に日付付きで残す。批評（journey-check）はこの記録を入力にする。
 
+2026-09-20 夜: stress/subject:checkは同日再実行で記録を上書きしないようUTC時刻付きファイル名へ変更。eval:lruも読み取り・期待選択を時刻付きJSONに保存する。修正後の批評は `eval/journey-check-2026-09-20-quality.md`。初回の失敗記録は保持した。
+
 ---
 
 ## 1. 配置
@@ -28,6 +30,7 @@ docs/eval/                 日付付きの記録（消さない）
 | --- | --- | --- | --- |
 | 固定戦略ボット | `npm run harness:stress` | `scripts/harness/stress-bots.mts` | Jev 約15回 |
 | 帳面レポート | `npm run harness:notebook [-- --db x.sqlite]` | `scripts/harness/notebook-report.mts` | なし |
+| 助け舟の判定プローブ | `npm run harness:support [-- --repeat 2]` | `scripts/harness/support-probe.mts` | 実 Jev（9 件×回数） |
 | 題材検査 | `npm run subject:check [-- --spec scripts/subject/specs/lru-cache.json]` | `scripts/subject/check.mts` | Jev 3回 + LLM 1回 |
 | 題材候補の収集 | `npm run subject:mine -- --repo owner/name [--limit 60]` | `scripts/subject/mine.mts` | GitHub |
 | 題材候補の順位 | `npm run subject:rank -- --in docs/eval/subject-candidates/x.jsonl` | `scripts/subject/rank.mts` | Jev 1回/候補 |
@@ -66,12 +69,15 @@ docs/eval/                 日付付きの記録（消さない）
 | `subject-check-lru-cache-2026-09-20.md` | 矛盾の2行は原因を言わず（0.12）矛盾として読め（0.86）、LLM から質問3つが出た。**真相の一文は L6 が undetermined**（types 0.36）。報告者の期待も undetermined |
 | `notebook-2026-09-20.md` | 11 セッション（Playwright 中心）、核心に触れた 6、提出 2、クリア 0 |
 | `jev-lint-2026-09-20.md` | 相棒の台詞 L4/L7 が漏れ（0.64 / 0.60）、L2 が境界（0.49）。体験主張に観測がない節: journey 7・concept 5。LLM 判定の混入なし。注文APIの二重条件の問いは matcher の限界で拾えず（H-09） |
+| `jev-lint-2026-09-20-rerun.md` | winget 版 ast-grep 経由で再実行。L2/L4/L7 の書き換え後は companion 行 8 件が 3 パスとも loose 床 0.25 未満（F-03 消えた）。`orders/page.tsx:36` が 0.53〜0.55 → 0.64 と cutoff をまたいで揺れる（ダミー、据え置き） |
+| `support-probe-2026-09-20.md` | 行動シグナル 9 件の固定セットを実 Jev に読ませた。Choice 単体は「打っている最中」を stuck、「読み進め中」を explore と読むが、Noul「止まっているか」の門（0.6）と explore の60秒待ちで、出す／出さないは 9/9 が想定どおり。人の行動での分布は未測定 |
+| `subject-rank-2026-09-20-notes.md` | `subject:mine` / `subject:rank` の初回実走（cpython 40 件）。対照の bpo-39554（#83735）が 0.74 で全候補の上。既定クエリは性能・環境系が集まり、`not a bug` 系は `completed` で閉じるので拾えない → クエリ案を記録 |
 
 読み方: ボットと題材検査が同じ1点（`types` 軸が 0.4 未満に落ちて L6 が「解釈の確認」になる）を別の方向から指している。これが F-01。直す前に、T-31 の [合ってる] で通るのか、基準文で通すのかを決める。
 
 ## 5. 既知の制限
 
-- **Windows**: jev-lint 0.3.2 は `@ast-grep/cli/ast-grep`（拡張子なし）を execFile して失敗し、TypeScript ルールが全部「ast-grep rejected the rule set」で落ちる。`scripts/harness/jev-lint.mts` が `JEV_LINT_AST_GREP` に exe を渡して回避する。`npx jev-lint` 直叩きは使わない
+- **Windows**: jev-lint 0.3.2 は `@ast-grep/cli/ast-grep`（拡張子なし）を execFile して失敗し、TypeScript ルールが全部「ast-grep rejected the rule set」で落ちる。`scripts/harness/jev-lint.mts` が `JEV_LINT_AST_GREP` に exe を渡して回避する（優先順: PATH の `ast-grep.exe`（winget 版、2026-09-20 に導入）→ `node_modules/@ast-grep/cli-win32-x64-msvc` → npx キャッシュ）。`npx jev-lint` 直叩きは使わない
 - **Windows**: block ルール（Markdown）の `expect.yml` ラベルが突き合わない（subject のパスが `/`、ラベル側が `\`）。`claim-has-evidence` は `calibrate --labels rules/text/claim-has-evidence/labels.json` で fit し、記録を `docs/eval/jev-lint-claim-has-evidence-calibrate.json` に置いた。baseline がないので `eval --replay` の回帰対象に入らない
 - **Windows**: `eval --replay` は baseline のラベルも突き合わせられず、P/R 欄が `no labeled violations matched` になる。ゲートとして効くのは各 suite の末尾の `vs the decisions accepted with it: same decisions` の行（決定が動いたかどうか）。live の `eval`（`--repeat`）ではラベルは合う
 - **大きなコミット**: `commits` は diff を 64K トークンに切り詰めるが、統合コミット（aa2d9d3・40374a7）は `max_tokens_exceeded` で判定不能。普通の大きさのコミット（af851e4）は通る

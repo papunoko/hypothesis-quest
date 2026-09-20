@@ -4,12 +4,16 @@
 //
 // Windows: jev-lint 0.3.2 は `@ast-grep/cli/ast-grep`（拡張子なしのシェルスクリプト）を
 // execFile して失敗し「ast-grep rejected the rule set:」（詳細なし）で止まる。
-// 実行ファイル本体（cli-win32-x64-msvc/ast-grep.exe）を JEV_LINT_AST_GREP で渡して回避する。
+// 実行ファイル本体を JEV_LINT_AST_GREP で渡して回避する。優先順: PATH の ast-grep（winget 版など）
+// → node_modules の cli-win32-x64-msvc → npx キャッシュ。
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 function findAstGrepExe(): string | undefined {
+  const onPath = spawnSync("where", ["ast-grep"], { encoding: "utf8" });
+  const hit = onPath.status === 0 ? onPath.stdout.split(/\r?\n/).find((l) => /\.exe$/i.test(l.trim())) : undefined;
+  if (hit && existsSync(hit.trim())) return hit.trim();
   const local = join("node_modules", "@ast-grep", "cli-win32-x64-msvc", "ast-grep.exe");
   if (existsSync(local)) return local;
   const cache = join(process.env.LOCALAPPDATA ?? "", "npm-cache", "_npx");

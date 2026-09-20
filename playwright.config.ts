@@ -6,7 +6,7 @@ export default defineConfig({
   workers: 1,
   timeout: 40_000,
   use: {
-    baseURL: "http://localhost:3002",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:3002",
     viewport: { width: 1440, height: 1000 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
@@ -15,8 +15,8 @@ export default defineConfig({
     { name: "ui", testMatch: ["**/quest.spec.ts", "**/lru.spec.ts", "**/questions.spec.ts", "**/review.spec.ts"] },
     { name: "live", testMatch: "**/*.live.spec.ts" },
   ],
-  webServer: {
-    command: "node node_modules/next/dist/bin/next dev --port 3002",
+  webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : {
+    command: "npm run dev",
     url: "http://localhost:3002",
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

@@ -5,26 +5,44 @@
   "scripts": {
     "dev": "next dev --port 3002",
     "build": "next build",
+    "build:worker": "node scripts/check-build-env.mjs && opennextjs-cloudflare build",
+    "preview": "npm run db:migrate:local && npm run build:worker && opennextjs-cloudflare preview --port 8787",
+    "deploy": "node scripts/check-deploy.mjs && npm run build:worker && wrangler d1 migrations apply DB --remote && opennextjs-cloudflare deploy",
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
+    "predev": "npm run db:migrate:local",
     "start": "next start",
     "test": "node --test src/subject/*.test.ts src/lib/*.test.ts",
-    "eval:jev": "node --env-file=.env.local scripts/eval-jev.mts",
-    "eval:lru": "node --env-file=.env.local scripts/eval-lru.mts",
-    "eval:questions": "node --env-file=.env.local scripts/eval-questions.mts",
-    "eval:narration": "node --env-file=.env.local scripts/eval-narration.mts",
+    "eval:jev": "node --env-file=.dev.vars scripts/eval-jev.mts",
+    "eval:lru": "node --env-file=.dev.vars scripts/eval-lru.mts",
+    "eval:questions": "node --env-file=.dev.vars scripts/eval-questions.mts",
+    "eval:narration": "node --env-file=.dev.vars scripts/eval-narration.mts",
     "verify:lru": "node scripts/verify-lru.mts",
     "test:e2e": "playwright test --project=ui",
-    "test:e2e:live": "playwright test --project=live"
+    "test:e2e:live": "playwright test --project=live",
+    "harness:stress": "node --env-file=.dev.vars scripts/harness/stress-bots.mts",
+    "harness:notebook": "node scripts/harness/notebook-report.mts",
+    "subject:mine": "node --env-file=.dev.vars scripts/subject/mine.mts",
+    "subject:rank": "node --env-file=.dev.vars scripts/subject/rank.mts",
+    "subject:check": "node --env-file=.dev.vars scripts/subject/check.mts",
+    "lint:jev": "node --env-file=.dev.vars scripts/harness/jev-lint.mts",
+    "lint:jev:check": "node --env-file=.dev.vars scripts/harness/jev-lint.mts check src docs/journey.md docs/concept.md docs/subjects",
+    "lint:jev:review": "node --env-file=.dev.vars scripts/harness/jev-lint.mts review --base master",
+    "lint:jev:replay": "node --env-file=.dev.vars scripts/harness/jev-lint.mts eval --replay"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "1.20.6",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "5.20260920.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "typescript": "latest"
+    "typescript": "latest",
+    "wrangler": "4.135.0"
   }
 }

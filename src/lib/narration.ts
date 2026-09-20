@@ -1,4 +1,5 @@
 import { evaluateState, parseNoul } from "./noul.ts";
+import { serverEnv } from "./server-env.ts";
 import { LRU_CASES, LRU_LABEL } from "../subject/lru.ts";
 import type { QuestionAnswer } from "../subject/lru-questions.ts";
 
@@ -18,9 +19,9 @@ export function questionContext(text: string, question: QuestionAnswer, hint = f
 }
 
 export async function generateText(context: NarrationContext, signal?: AbortSignal): Promise<{ text: string; model: string }> {
-  const key = process.env.OLLAMA_API_KEY;
+  const key = serverEnv("OLLAMA_API_KEY");
   if (!key) throw new Error("LLM unavailable");
-  const model = process.env.OLLAMA_MODEL || "gemma4:31b";
+  const model = serverEnv("OLLAMA_MODEL") || "gemma4:31b";
   const mode = context.mode === "question"
     ? "質問への返答を日本語2〜3文、160字以内で。allowedFactsの答えと実結果だけを自然に伝える。原因や実装の仕組み、引数の個数の違いなど、比較の解き方を教えない。場合によるなら2枚を比べるよう促す。"
     : context.mode === "hint"

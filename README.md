@@ -1,23 +1,23 @@
 # 仮説クエスト (Hypothesis Quest)
 
-現在の作業先は `C:/Users/ABC/pj/jev-hathon`。3002版のLLM回答・最終提出・UI調整を統合済み。以下の別worktreeの説明は分離開発時の記録です。起動中の元フォルダ版は http://localhost:3001 で確認できます（`npm run dev` の既定は3002）。
+現在の作業先は `C:/Users/ABC/pj/jev-hathon`。**[ebiharadev.org](https://ebiharadev.org) で公開中**（Cloudflare Workers + D1）。公開は2026年9月30日いっぱい、日本時間10月1日0時に画面・APIを自動停止します。[運用手順](docs/deployment.md) を参照。派生worktreeは削除済みです。
 
 ## 3002版：LLM回答とレビュー提出
 
-この作業ツリーは `C:/Users/ABC/pj/jev-hathon-3002`、ブランチは `llm-3002`。元の3001版（`../jev-hathon`）と別のソース・`.next`・SQLiteで動きます。3001の起動中プロセスを止める必要はありません。
+LLM回答・最終提出・UI調整は元フォルダに統合済み。開発サーバーは3002、Workersプレビューは8787です。
 
 ```powershell
 npm ci
-# .env.local: JEV_API_KEY と OLLAMA_API_KEY（値はGitに入れない）
+# .dev.vars: JEV_API_KEY と OLLAMA_API_KEY（値はGitに入れない）
 npm run dev              # http://localhost:3002
 npm run eval:narration   # 実LLM生成とJev検問の評価
 ```
 
 - 質問には検証済みの比較結果を使ってLLMが回答。通常は原因を先に明かさず、「理由も知りたい」でヒントを開ける。
-- レビュー画面で最後の仮説・判断・コメントを入力し、**明示的に提出**すると7事例を照合してLLMが返答。SQLiteに提出と返答を保存し、後から読み返せる。GitHubへの投稿・マージ操作はしない。
+- レビュー画面で最後の仮説・判断・コメントを入力し、**明示的に提出**すると7事例を照合してLLMが返答。D1に提出と返答を保存し、後から読み返せる。GitHubへの投稿・マージ操作はしない。
 - 生成はOllama Cloudの `gemma4:31b`（`OLLAMA_MODEL`で変更可）。JevのNoulで根拠外の主張・個人の採点を検問し、通常質問では原因の先出しも検問。0.30以上または通信・形式エラーなら生成文を表示せず定型文に戻す。検問は誤りゼロの保証ではない。
 - 質問文／提出文と、その場で必要な実測・確認した質問の要約をOllama Cloudへ送信。生成文と根拠をJevへ送信する。入力中のLLM呼び出しはない。秘密情報は入力しないこと。
-- SQLiteはこのツリーの `data/notebook.sqlite`、Cookie名は `quest-session-3002`。3001の帳面・Cookieは変更しない。自動削除・公開向けの認証／レート制限は未実装。
+- 保存先はD1（開発中は `.wrangler/state`）、Cookie名は互換性のため `quest-session-3002` を継続。旧SQLiteは保持するが自動移行しない。自動削除・公開向け認証／レート制限は未実装。
 - 未検証の任意コードの実行や、任意の質問への回答保証はしない。生成文を根拠に実結果やクリア判定を書き換えることもない。
 
 以下の古い記録に3000/3001の起動例があるが、このツリーで試すポートは3002。
@@ -78,9 +78,10 @@ AIは1時間で3000行書く。人間がそれを理解するには3日かかる
 | [docs/roadmap.md](docs/roadmap.md) | フェーズと到達点。どこまで作れば成立するか |
 | [docs/backlog.md](docs/backlog.md) | 実装タスク一覧 |
 | [docs/decisions.md](docs/decisions.md) | なぜこの1本に絞ったか。検討した8案と不採用理由 |
-| [docs/deployment.md](docs/deployment.md) | Cloudflare Tunnel で公開する手順・固定URL・運用上の注意 |
+| [docs/deployment.md](docs/deployment.md) | Workers + D1 / ebiharadev.org の設定・Secrets・デプロイ手順 |
 | [docs/subjects/lru-cache.md](docs/subjects/lru-cache.md) | **本番題材**: functools.lru_cache。事例8枚・出典イシュー・コードへの戻り先 |
 | [docs/journey.md](docs/journey.md) | 本番題材のプレイ体験。メンテナとして PR をレビューする導入・軸の実測・入力中の鏡と「直観の声」（LLM+Jev検閲）・4手のジャーニー・台本 |
+| [docs/harness.md](docs/harness.md) | 体験と題材を批判的に測るハーネス。固定戦略ボット・帳面レポート・題材検査・jev-lint（自然言語ルール）・スキル。結果は `docs/eval/` |
 | [docs/research/jev-use-cases.md](docs/research/jev-use-cases.md) | 公開Jevユースケース調査（公式Docs・OSS） |
 | [docs/research/chatgpt-rally.txt](docs/research/chatgpt-rally.txt) | 企画の原典。TRPG／数学ガール／ゲーム設計論の往復ログ |
 
@@ -88,51 +89,28 @@ AIは1時間で3000行書く。人間がそれを理解するには3日かかる
 
 ```powershell
 npm ci
-# .env.local に JEV_API_KEY=<your key> を保存する
-npm run dev       # http://localhost:3000
-npm test          # 事例カード6枚の実結果を題材コードで検証
+# .dev.vars に JEV_API_KEY / OLLAMA_API_KEY を保存する
+npm run dev       # D1 migration後 http://localhost:3002
+npm test          # 事例判定・検問・D1保存など
 ```
 
 ## 検証する
 
-検証は `npm test`（23件）と `npm run eval:jev`（注文APIの実Jev評価）、`npm run eval:lru`（題材2の14仮説）、`npm run eval:questions`（質問等9入力）。
+検証は `npm test`（28件、ローカルD1を含む）と `npm run eval:jev`（注文APIの実Jev評価）、`npm run eval:lru`（題材2の14仮説）、`npm run eval:questions`（質問等9入力）。
 ブラウザテストには [Playwright](https://playwright.dev/docs/test-webserver) を使用する。
 初回に `npx playwright install chromium` を実行してから、以下を使う。
 
 ```powershell
-npm run test:e2e       # 画面回帰10件
-npm run test:e2e:live  # 実Jev3件（質問・帳面の保存と復元を含む）
+npm run test:e2e       # 画面回帰12件
+npm run test:e2e:live  # 実Jev/LLM4件（質問・帳面・提出の保存と復元を含む）
 ```
 
-テスト用サーバーはlocalhost:3001。スクリーンショットと失敗時traceは `test-results/`。
+テスト用サーバーはlocalhost:3002。Workersプレビューを検証する場合は `PLAYWRIGHT_BASE_URL=http://localhost:8787` を設定。スクリーンショットと失敗時traceは `test-results/`。
 注文APIの動作確認台本は [docs/demo-orders.md](docs/demo-orders.md)。
 
-## Cloudflare Tunnel で公開する
+## Cloudflare Workersで公開する
 
-このリポジトリの公開方法は、ローカルで動かす Next.js の本番サーバーを
-`cloudflared` でインターネットへ接続する構成を前提にする。
-
-ターミナル1:
-
-```powershell
-npm ci
-npm test
-npm run build
-npm start
-```
-
-ターミナル2:
-
-```powershell
-cloudflared tunnel --url http://localhost:3000
-```
-
-表示された `https://....trycloudflare.com` を共有する。URLは起動ごとに変わり、
-`npm start` または `cloudflared` を止めるとアクセスできなくなる。
-
-**この方法に Wrangler は不要。** Wrangler が必要になるのは、Next.js 自体を
-Cloudflare Workers へ配置する構成へ切り替える場合。固定URLを使う Named Tunnel、
-秘密情報の扱い、終了方法は [デプロイ手順](docs/deployment.md) を参照。
+`npm run preview` でWorkersをローカル確認、`npm run deploy` で更新できます。D1・Secrets・本番Routeは設定済みです。再デプロイでも9月末の公開期限を維持してください。[運用手順](docs/deployment.md) を参照。
 
 ## 題材
 
@@ -145,7 +123,7 @@ Cloudflare Workers へ配置する構成へ切り替える場合。固定URLを�
 
 **質問も受け付けます。** 「型は関係ある？」と聞くと、Jevが入力の種別・話題を読み、コードがL5/L6の実測から「場合による」と返して2枚並べます。答える対象の問いを明示し、未検証の質問は「まだ答えられません」と返します。曖昧な入力は質問／仮説の選択で確認できます。
 
-**入力はローカルSQLiteに保存**します（Node 26の `node:sqlite`、`data/notebook.sqlite`、Git対象外）。保存するのは送信して回答を得た入力・読み取り・返答・提示事例・時刻。帳面そのものは外部送信しませんが、入力文は読み取りのためTypeSafe Jevへ送信します。秘密情報は入力しないでください。
+**入力はD1に保存**します（開発中はローカル、本番ではCloudflare）。入力・読み取り・返答・提示事例・時刻・提出を保存。入力文はTypeSafe Jevへ、質問・提出時の文と限定した根拠はOllama Cloudへ送信します。秘密情報は入力しないでください。
 
 帳面はブラウザのセッションCookieで分離され、再読み込み後も復元できます。Cookieが失われると元の帳面への画面上のアクセスも失われますが、DBは自動削除されません。「もう一周する」は帳面の削除ではありません。公開時には保持期間・削除導線・レート制限の整備が別途必要です。
 
@@ -165,4 +143,4 @@ src/app/api/predict/        APIルート1本（キーはサーバー側）
 src/app/page.tsx            画面1枚
 ```
 
-Next.js + React + TypeScript + SQLite。Jevが入力を読み、コードが検証済み事例から回答・事例選択を行います。相棒の文は現状固定。ユーザー確認により入力中のLLMの声は保留し、次は曖昧文の書き直しと検問付き提出解説を予定しています（[concept §12](docs/concept.md)、backlog U）。
+Next.js + React + TypeScript + OpenNext + Cloudflare Workers/D1。Jevが入力を読み、コードが事例から回答・照合を行い、Ollamaの生成文をJevが検問します。入力中のLLMの声・曖昧文の分割は保留です。

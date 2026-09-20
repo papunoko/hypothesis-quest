@@ -25,16 +25,16 @@ test("実LLMの質問回答・ヒント・最終提出の解説を検問し保�
   expect((await (await page.request.get("/api/review")).json()).submissions).toHaveLength(1);
   const isolated = await browser.newContext();
   try {
-    expect((await (await isolated.request.get("http://localhost:3002/api/review")).json()).submissions).toEqual([]);
+    expect((await (await isolated.request.get(new URL("/api/review", page.url()).href)).json()).submissions).toEqual([]);
     const entries = (await (await page.request.get("/api/notebook")).json()).entries;
-    expect((await isolated.request.post("http://localhost:3002/api/explain", { data: { entryId: entries[0].id } })).status()).toBe(404);
+    expect((await isolated.request.post(new URL("/api/explain", page.url()).href, { data: { entryId: entries[0].id } })).status()).toBe(404);
   } finally { await isolated.close(); }
   expect((await page.request.post("/api/review", { data: { hypothesis: "" } })).status()).toBe(400);
   expect((await page.request.post("/api/review", { headers: { Origin: "https://unrelated.example" }, data: {} })).status()).toBe(403);
   expect((await page.request.post("/api/review", { data: { ...saved[0], review: "別の内容", requestId: saved[0].id } })).status()).toBe(409);
   await page.screenshot({ path: info.outputPath("llm-review-live.png"), fullPage: true });
   await page.reload(); await page.getByRole("button", { name: "このイシューを確かめる →" }).click();
-  await page.getByRole("button", { name: "レビュー提出・保存した回答を見る" }).click();
+  await page.getByRole("button", { name: "提出したレビューと回答を見る" }).click();
   await page.getByText("保存した提出履歴 · 1件", { exact: true }).click();
   await page.getByRole("button", { name: /の回答を見直す/ }).click();
   await expect(page.getByRole("heading", { name: "レビューを受け付けました" })).toBeVisible();

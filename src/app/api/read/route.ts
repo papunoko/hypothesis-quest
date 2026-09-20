@@ -1,6 +1,8 @@
 import { readLruInput } from "@/lib/lru-input";
+import { sameOrigin } from "@/lib/notebook-session";
 export const runtime = "nodejs";
 export async function POST(request: Request) {
+  if (!sameOrigin(request)) return Response.json({ error: "別サイトからは送信できません。" }, { status: 403 });
   const body = await request.json().catch(() => null);
   const hypothesis = typeof body?.hypothesis === "string" ? body.hypothesis.trim() : "";
   if (!hypothesis || hypothesis.length > 1000) return Response.json({ error: "仮説を1〜1000文字で入力してください。" }, { status: 400 });

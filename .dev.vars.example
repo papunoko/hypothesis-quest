@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local Workers preview. Never commit real keys.
+JEV_API_KEY=
+OLLAMA_API_KEY=

@@ -1,3 +1,4 @@
+import { serverEnv } from "./server-env.ts";
 export type NoulQuestion = { instructions: string; criteria: { true: string; false: string } };
 
 /** Shared HTTP transport; only hypothesis text is sent, never observed outcomes. */
@@ -12,7 +13,7 @@ export async function evaluateInput(hypothesis: string, questions: Record<string
 
 /** Grounded-output screening is separate from hypothesis interpretation. */
 export async function evaluateState(state: unknown, questions: Record<string, unknown>, signal?: AbortSignal) {
-  const apiKey = process.env.JEV_API_KEY;
+  const apiKey = serverEnv("JEV_API_KEY");
   if (!apiKey) throw new Error("JEV_API_KEY is not set");
   const timeout = AbortSignal.timeout(20_000);
   const response = await fetch("https://api.typesafe.ai/v1/systemone", {

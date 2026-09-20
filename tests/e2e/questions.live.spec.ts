@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("実Jevの質問→SQLite帳面→再読込→レビューと、他ブラウザとの分離", async ({ page, browser }, info) => {
+test("実Jevの質問→D1帳面→再読込→レビューと、他ブラウザとの分離", async ({ page, browser }, info) => {
   await page.goto("/"); await page.getByRole("button", { name: "このイシューを確かめる →" }).click();
   await page.getByRole("textbox").fill("型は関係ある？");
   await expect(page.getByText("質問として読んでいます", { exact: true })).toBeVisible({ timeout: 25000 });
@@ -12,7 +12,7 @@ test("実Jevの質問→SQLite帳面→再読込→レビューと、他ブラ�
   await expect(page.locator(".notebook")).toContainText("場合による");
   const isolated = await browser.newContext();
   try {
-    const response = await isolated.request.get("http://localhost:3002/api/notebook");
+    const response = await isolated.request.get(new URL("/api/notebook", page.url()).href);
     expect((await response.json()).entries).toEqual([]);
   } finally { await isolated.close(); }
   await page.getByRole("textbox").fill("同じ引数で呼べば記憶を返す");

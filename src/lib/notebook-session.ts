@@ -7,7 +7,7 @@ export async function notebookSession() {
   if (previous && /^[0-9a-f-]{36}$/i.test(previous)) return previous;
   const id = randomUUID();
   // Browser-session cookie: refreshes keep the same notebook. No identity in the URL.
-  jar.set("quest-session-3002", id, { httpOnly: true, sameSite: "strict", path: "/" });
+  jar.set("quest-session-3002", id, { httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", path: "/" });
   return id;
 }
 

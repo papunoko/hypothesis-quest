@@ -171,7 +171,7 @@ export default function LruQuest() {
   const askedTopics = [...new Set(entries.flatMap((entry) => entry.question?.topic ? [entry.question.topic] : []))];
 
   return <main className="lru-app">
-    <header className="quest-header"><a className="wordmark" href="/">仮説クエスト<span>読む前に、自分の説明を試す。</span></a><span className="subject-tag">3002 · LLM回答・レビュー提出版</span></header>
+    <header className="quest-header"><a className="wordmark" href="/">仮説クエスト<span>読む前に、自分の説明を試す。</span></a><span className="subject-tag">LLM回答・レビュー提出版</span></header>
     {!started ? <>
       <section className="intro-hero"><div className="eyebrow">あなたはCPythonのメンテナ。今日はPRをレビューします。</div><h1>「同じ引数」のはずなのに。<br />この修正、マージしていい？</h1><p>届いたのは「1と1.0を同じ呼び出しとして扱う」という提案。<br />判断する前に、いまの実装が何を「同じ」とみなしているか、あなたの言葉で確かめます。</p></section>
       <Story />
@@ -225,7 +225,7 @@ export default function LruQuest() {
               {!ended && <button className="text-button" disabled={busy} onClick={finish}>観察を区切ってレビューを書く</button>}
             </div>
           </section>
-          <section className="history-card notebook"><h2>調べたことの帳面</h2><details className="privacy"><summary>保存と送信について</summary><p className="small-note">入力と返答をこのPCのSQLiteに保存します。質問文と公開する事実はOllama Cloudへ、生成文と根拠はJevへ送信します。下書きはLLMへ送信しません。</p></details>{notebookError && <p role="alert">{notebookError}</p>}
+          <section className="history-card notebook"><h2>調べたことの帳面</h2><details className="privacy"><summary>保存と送信について</summary><p className="small-note">入力と返答はサーバーのD1データベースに保存します（開発中はローカルD1）。質問文と公開する事実はOllama Cloudへ、生成文と根拠はJevへ送信します。仮説欄は入力中もJevが読み取ります。秘密情報は入力しないでください。</p></details>{notebookError && <p role="alert">{notebookError}</p>}
             {entries.length > 0 && <><h3>比較で確かめたこと</h3>{askedTopics.length ? <ul>{askedTopics.map((topic) => { const q = entries.findLast((entry) => entry.question?.topic === topic)!.question!; return <li key={topic}>{QUESTION_TOPICS[topic].label}：{q.answer}（{q.cases.join(" / ")}の範囲）</li>; })}</ul> : <p className="small-note">質問への返答はまだありません。</p>}<p className="small-note">{askedTopics.length < Object.keys(QUESTION_TOPICS).length ? "まだ質問していない論点があります。名前は、あなたが触れるまで表示しません。" : "用意した質問の論点には触れました。理解できたという採点ではありません。"}</p>
             <ol>{entries.map((entry) => <li key={entry.id}><span>{entry.kind === "question" ? "質問" : entry.kind === "assertion" ? "仮説" : "入力"} · {new Date(entry.at).toLocaleTimeString("ja-JP")}</span><p>{entry.hypothesis}</p>{entry.question?.topic && <p className="small-note">読み替え：{entry.question.question}</p>}<strong>{entry.answer}</strong>{entry.narration && <details><summary>相棒の回答を読み返す</summary><NarrationView narration={entry.narration} />{entry.hint && <NarrationView narration={entry.hint} />}</details>}<div>{entry.cases.map((id) => <button key={id} className="text-button" disabled={busy} onClick={() => { setResults(entry.results ?? []); if (entry.kind === "assertion") setConfirmed(entry.hypothesis); show(LRU_CASES.find((c) => c.id === id)!); }}>{id}を見直す</button>)}</div></li>)}</ol></>}
             {entries.length === 0 && <><h3>説明がどう変わったか</h3>{history.length ? <ol>{history.map((turn, i) => <li key={i}><p>{turn.hypothesis}</p><span>{turn.id} · {turn.note}</span></li>)}</ol> : <p className="small-note">試した仮説と、そこから見つかった事例が残ります。</p>}</>}

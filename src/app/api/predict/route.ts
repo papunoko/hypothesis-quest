@@ -38,16 +38,16 @@ export async function POST(req: Request) {
         entry.answer = question?.answer ?? "質問か、現状の説明を一文で書いてみてください。";
         entry.cases = question?.cases ?? [];
         if (question) entry.narration = await narrate(questionContext(hypothesis, question), req.signal);
-        store.append(session, entry);
-        return NextResponse.json({ ...interpretation, kind, question, narration: entry.narration, entryId: entry.id, message: entry.answer, results: [], next: null, entries: store.list(session) });
+        await store.append(session, entry);
+        return NextResponse.json({ ...interpretation, kind, question, narration: entry.narration, entryId: entry.id, message: entry.answer, results: [], next: null, entries: await store.list(session) });
       }
       const results = LRU_CASES.map((c) => judgeLru(c, reading));
       const next = nextLru(results, shown);
       entry.results = results;
       entry.cases = next ? [next.id] : [];
       entry.answer = next ? next.verdict === "mismatch" ? "予想と食い違い" : next.verdict === "match" ? "この例では一致" : "読み取りを確認" : "用意した事例を確認して終了";
-      store.append(session, entry);
-      return NextResponse.json({ ...interpretation, kind, results, next: next?.id ?? null, reason: next?.verdict ?? "exhausted", entries: store.list(session) });
+      await store.append(session, entry);
+      return NextResponse.json({ ...interpretation, kind, results, next: next?.id ?? null, reason: next?.verdict ?? "exhausted", entries: await store.list(session) });
     }
     // Jev は仮説文だけを読む（1リクエスト）。事例への当てはめと照合はコード。
     const reading = await readHypothesis(hypothesis);

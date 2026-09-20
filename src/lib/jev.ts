@@ -8,6 +8,7 @@
  *    判断モデルには判断だけをさせ、推論はコードで持つ。
  */
 
+import { serverEnv } from "./server-env.ts";
 export const AXES = ["sameContent", "sameKey", "retry", "rejectConflict"] as const;
 export type Axis = (typeof AXES)[number];
 
@@ -48,7 +49,7 @@ const CRITERIA: Record<Axis, { true: string; false: string }> = {
 };
 
 export async function readHypothesis(hypothesis: string): Promise<Reading> {
-  const apiKey = process.env.JEV_API_KEY;
+  const apiKey = serverEnv("JEV_API_KEY");
   if (!apiKey) throw new Error("JEV_API_KEY is not set");
 
   const questions = Object.fromEntries(AXES.map((a) => [a, { type: "noul", instructions: QUESTIONS[a], criteria: CRITERIA[a] }]));

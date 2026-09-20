@@ -7,3 +7,11 @@ next-env.d.ts
 test-results/
 playwright-report/
 data/
+.open-next/
+.wrangler/
+.dev.vars*
+!.dev.vars.example
+
+# jev-lint
+.jev-lint-cache.json
+rules/**/last.json

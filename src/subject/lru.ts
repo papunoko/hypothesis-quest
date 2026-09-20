@@ -28,7 +28,7 @@ export const LRU_EXTRA = {
 };
 /** Held out of selection, question answers, and the seven-case clear condition. */
 export const LRU_HOLDOUT: LruCase = {
-  id: "H1", title: "最後にひとつ、見ていない事例",
+  id: "H1", title: "最後にひとつ、別の事例で試す",
   situation: "同じ関数 f(x, y=0)、typed=False。新しいキャッシュで順に呼びます。2回目はどうなるでしょう？",
   calls: ["f(1.0)", "f(True)"], typed: false,
   features: features({ types: false }), actual: "remembered",
@@ -36,8 +36,9 @@ export const LRU_HOLDOUT: LruCase = {
   companion: "",
   evidence: { title: "CPython 3.12.3（verify:lruで再現）", url: LRU_SOURCE, code: "return _HashedSeq(key)", line: 477 },
 };
+export const LRU_HOLDOUT_PROMPT = "f(1.0)の後のf(True)はどうなる？";
 export const LRU_UNEXPLORED = [
-  "f(1.0)の後のf(True)はどうなる？", "文字列のサブクラスは同じ扱い？（bpo-44992）",
+  LRU_HOLDOUT_PROMPT, "文字列のサブクラスは同じ扱い？（bpo-44992）",
   "保存件数の上限を超えたら、何を忘れる？", "メソッドのselfも記憶の区別に含む？", "cache_clear()で消した後は？",
 ];
 

@@ -20,7 +20,13 @@ const choices = {
 } as const;
 export type InputKind = "question" | "assertion" | "other";
 type Topic = QuestionTopic | "unrelated" | "unsupported";
-export type InputReading = { reading: LruReading; kind: InputKind; topic: Topic; needsKind: boolean; needsTopic: boolean; kindProbabilities: Record<InputKind, number> };
+export type InputReading = { reading: LruReading; kind: InputKind; topic: Topic; needsKind: boolean; needsTopic: boolean; kindProbabilities: Record<InputKind, number>; coreRelevance?: number };
+
+// Display only: mentioning the puzzle's topic is different from asserting its rule.
+export const CORE_RELEVANCE = { type: "noul", instructions: "In this lru_cache exercise, does `hypothesis` discuss the topic of argument types or argument count?", criteria: {
+  true: "It mentions types (型, int, float, typed) or argument count (個数, 1個, 2個). Short questions such as 型は関係ある？ and 引数の個数で変わる？ count; they need not repeat the cache context. Asking, asserting, and denying all count, regardless of correctness.",
+  false: "The input only discusses argument values, omitted defaults, positional versus keyword spelling, keyword order, eviction, or an unrelated topic, without discussing types or argument count.",
+} } as const;
 
 export function parseChoice<K extends string>(value: unknown, options: readonly K[]): { choice: K; probabilities: Record<K, number> } {
   if (!value || typeof value !== "object") throw new Error("Invalid Choice");
@@ -34,11 +40,15 @@ export function parseChoice<K extends string>(value: unknown, options: readonly 
 export async function readLruInput(hypothesis: string, signal?: AbortSignal): Promise<InputReading> {
   const data = await evaluateInput(hypothesis, {
     ...Object.fromEntries(Object.entries(LRU_AXES).map(([key, q]) => [key, { type: "noul", instructions: q.instructions, criteria: q.criteria }])), ...choices,
+    coreRelevance: CORE_RELEVANCE,
   }, signal);
   const kind = parseChoice(data.answers?.kind, Object.keys(choices.kind.criteria) as InputKind[]);
   const topic = parseChoice(data.answers?.topic, Object.keys(choices.topic.criteria) as Topic[]);
+  let coreRelevance: number | undefined;
+  try { coreRelevance = parseNoul(data, ["coreRelevance"]).coreRelevance; }
+  catch { /* A missing display-only value must not block the actual comparison. */ }
   return { reading: parseNoul(data, Object.keys(LRU_AXES) as LruAxis[]), kind: kind.choice, topic: topic.choice,
     needsKind: kind.probabilities[kind.choice] < 0.65,
     needsTopic: topic.probabilities[topic.choice] < 0.65,
-    kindProbabilities: kind.probabilities };
+    kindProbabilities: kind.probabilities, coreRelevance };
 }

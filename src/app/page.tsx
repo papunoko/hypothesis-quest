@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { LRU_AXES, LRU_CASES, LRU_EXTRA, LRU_LABEL, LRU_SOURCE, LRU_UNEXPLORED, type LruAxis, type LruCase, type LruReading } from "@/subject/lru";
+import { LRU_AXES, LRU_CASES, LRU_EXTRA, LRU_LABEL, LRU_SOURCE, LRU_UNEXPLORED, LRU_HOLDOUT_PROMPT, type LruAxis, type LruCase, type LruReading } from "@/subject/lru";
 import type { LruResult } from "@/lib/lru-select";
 import type { InputReading, InputKind } from "@/lib/lru-input";
 import type { NotebookEntry } from "@/lib/notebook-types";
@@ -10,6 +10,7 @@ import type { Narration } from "@/lib/narration";
 import { NarrationView } from "./narration-view";
 import { ReviewPanel } from "./review-panel";
 import { SupportCard } from "./support-card";
+import { SessionControls } from "./session-controls";
 import type { SupportKind } from "@/lib/support";
 
 const AXES = Object.keys(LRU_AXES) as LruAxis[];
@@ -48,6 +49,8 @@ export default function LruQuest() {
   const [history, setHistory] = useState<Turn[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [ended, setEnded] = useState(false);
+  const [reviewOpened, setReviewOpened] = useState(false);
+  const [holdoutSeen, setHoldoutSeen] = useState(false);
   const [extra, setExtra] = useState(false);
   const [review, setReview] = useState("");
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
@@ -60,22 +63,36 @@ export default function LruQuest() {
   const [questionEntryId, setQuestionEntryId] = useState<string | null>(null);
   const [hint, setHint] = useState<Narration | null>(null);
   const [support, setSupport] = useState<{ kind: Exclude<SupportKind, "none">; source: "jev" | "manual" } | null>(null);
+  const [lastSubmitted, setLastSubmitted] = useState("");
   const input = useRef<HTMLTextAreaElement>(null);
+  const inputColumn = useRef<HTMLElement>(null);
   const caseMap = useRef<HTMLDetailsElement>(null);
   // 行動シグナル（数だけ）。事例が切り替わるたびに初期化する。入力文は /api/support に送らない。
   const signals = useRef({ caseAt: Date.now(), inputAt: 0, scrolls: 0, depth: 0, moves: 0, lastMove: 0, focused: false });
   const supportDismissed = useRef(new Set<SupportKind>());
   const supportBusy = useRef(false);
   const supportAt = useRef(0);
-  const latest = useRef({ started: false, ended: false, busy: false, composing: false, support: false, hypothesis: "", readingFresh: false, casesSeen: 0, submissions: 0 });
+  const supportSequence = useRef(0);
+  const supportController = useRef<AbortController | null>(null);
+  const latest = useRef({ started: false, ended: false, busy: false, composing: false, support: false, hypothesis: "", readingFresh: false, casesSeen: 0, submissions: 0, submitted: false });
   const readController = useRef<AbortController | null>(null);
   const readSequence = useRef(0);
   const composingRef = useRef(false);
   const submitLock = useRef(false);
   const resultRef = useRef<HTMLDivElement>(null);
   function revealResult() {
-    if (typeof window === "undefined" || window.innerWidth > 800) return;
-    requestAnimationFrame(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    requestAnimationFrame(() => {
+      inputColumn.current?.scrollTo({ top: 0, behavior: "instant" });
+      resultRef.current?.focus({ preventScroll: true });
+      resultRef.current?.scrollIntoView({ behavior: "instant", block: "start" });
+    });
+  }
+  useEffect(() => { if (started) revealResult(); }, [started, ended, current, question, message]);
+
+  function invalidateSupport() {
+    ++supportSequence.current;
+    supportController.current?.abort();
+    setSupport(null);
   }
 
   useEffect(() => {
@@ -119,7 +136,7 @@ export default function LruQuest() {
 
   function resetSignals() {
     signals.current = { ...signals.current, caseAt: Date.now(), inputAt: 0, scrolls: 0, moves: 0 };
-    supportDismissed.current.clear(); setSupport(null);
+    supportDismissed.current.clear(); invalidateSupport();
   }
   useEffect(() => {
     if (!started) return;
@@ -140,25 +157,30 @@ export default function LruQuest() {
     if (!started || ended) return;
     const probe = async () => {
       const l = latest.current; const s = signals.current; const now = Date.now();
-      if (!l.started || l.ended || l.busy || l.composing || l.support || supportBusy.current || document.visibilityState !== "visible") return;
+      if (!l.started || l.ended || l.busy || l.composing || l.support || l.submitted || supportBusy.current || document.visibilityState !== "visible") return;
       const secondsOnCase = (now - s.caseAt) / 1000;
       const secondsSinceInput = s.inputAt ? (now - s.inputAt) / 1000 : secondsOnCase;
       if (secondsOnCase < 15 || now - supportAt.current < 12_000 || secondsSinceInput < 6) return;
       supportBusy.current = true; supportAt.current = now;
+      const sequence = supportSequence.current;
+      const controller = new AbortController();
+      supportController.current = controller;
       try {
-        const response = await fetch("/api/support", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ signals: {
+        const response = await fetch("/api/support", { method: "POST", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ signals: {
           secondsOnCase: Math.round(secondsOnCase), secondsSinceInput: Math.round(secondsSinceInput), inputChars: l.hypothesis.trim().length,
           scrollCount: s.scrolls, scrollDepth: Math.round(s.depth * 100) / 100, pointerMoves: s.moves, casesSeen: l.casesSeen, submissions: l.submissions,
           readingReady: l.readingFresh, focused: s.focused,
         } }) });
         if (!response.ok) throw new Error("support unavailable");
         const data: { kind: SupportKind; offer: boolean } = await response.json();
-        if (data.offer && data.kind !== "none" && !supportDismissed.current.has(data.kind) && !latest.current.support) setSupport({ kind: data.kind, source: "jev" });
-      } catch { supportAt.current = Date.now() + 48_000; }
+        const active = latest.current;
+        if (sequence !== supportSequence.current || controller.signal.aborted || active.ended || active.busy || active.composing || active.submitted || active.support || document.visibilityState !== "visible") return;
+        if (data.offer && data.kind !== "none" && !supportDismissed.current.has(data.kind) && (data.kind !== "send" || active.readingFresh && !!active.hypothesis.trim())) setSupport({ kind: data.kind, source: "jev" });
+      } catch { if (!controller.signal.aborted) supportAt.current = Date.now() + 48_000; }
       finally { supportBusy.current = false; }
     };
     const timer = setInterval(() => void probe(), 5000);
-    return () => clearInterval(timer);
+    return () => { clearInterval(timer); ++supportSequence.current; supportController.current?.abort(); };
   }, [started, ended]);
   function show(card: LruCase) {
     if (busy) return;
@@ -168,6 +190,8 @@ export default function LruQuest() {
   }
   function finish() {
     if (busy) return;
+    invalidateSupport();
+    setReviewOpened(true);
     setCurrent(null); setQuestion(null); setMessage(""); setEnded(true);
     const latestTheory = entries.findLast((entry) => entry.kind === "assertion")?.hypothesis;
     setReview(`現状の実装についての私の理解：${latestTheory || confirmed || "まだ一文では説明できていません。"}\n\nこのPRの判断：\n追加で確かめたいこと：`);
@@ -175,13 +199,14 @@ export default function LruQuest() {
   async function submit(kind?: InputKind) {
     const text = hypothesis.trim();
     if (!text || busy || ended || !notebookReady || composingRef.current || submitLock.current) return;
-    submitLock.current = true; ++readSequence.current; readController.current?.abort(); setBusy(true); setError(null); setSupport(null);
+    submitLock.current = true; ++readSequence.current; readController.current?.abort(); invalidateSupport(); setBusy(true); setError(null);
     try {
       const response = await fetch("/api/predict", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ subject: "lru", hypothesis: text, shown, kind }) });
       const data: ResponseData = await response.json();
       if (!response.ok) throw new Error(data.error || "Jevに接続できませんでした。");
       setPreview({ ...data, hypothesis: text });
       if (data.clarify) { setClarify(true); return; }
+      setLastSubmitted(text);
       setClarify(false);
       if (data.entries) { setEntries(data.entries); setNotebookError(""); }
       if (data.kind === "question" || data.kind === "other") {
@@ -189,7 +214,6 @@ export default function LruQuest() {
         resetSignals();
         setQuestion(data.question ?? null); setMessage(data.message ?? ""); setCurrent(null); setResults([]);
         setShown((ids) => [...new Set([...ids, ...data.question?.cases ?? []])]);
-        revealResult();
         return;
       }
       setResults(data.results); setConfirmed(text);
@@ -199,7 +223,6 @@ export default function LruQuest() {
         const card = LRU_CASES.find((c) => c.id === data.next)!; show(card);
         const result = data.results.find((r) => r.id === card.id)!;
         setHistory((entries) => [...entries, { hypothesis: text, id: card.id, note: result.verdict === "mismatch" ? "予想と食い違い" : result.verdict === "match" ? "この例では一致" : "読み取りを確認" }]);
-        revealResult();
       }
     } catch (e) { setError(e instanceof Error ? e.message : "接続に失敗しました。"); }
     finally { setBusy(false); submitLock.current = false; }
@@ -217,10 +240,11 @@ export default function LruQuest() {
   const result = current ? results.find((r) => r.id === current.id) : undefined;
   const pair = current?.id === "L5" ? LRU_CASES[5] : current?.id === "L6" ? LRU_CASES[4] : null;
   const readingFresh = preview?.hypothesis === hypothesis.trim();
-  // 核心度: 文が「型」「1個だけの特例」の主張に触れている強さ。0文字なら0。正しさではない
-  const coreness = readingFresh ? Math.max(preview.reading.types, preview.reading.singleFast) : 0;
+  // 表示専用の話題関連度。主張の肯否・正しさ・クリア判定から分離する。
+  const coreness = !hypothesis.trim() ? 0 : readingFresh && !composing ? preview.coreRelevance ?? null : null;
+  const sendLabel = readingFresh && preview?.kind === "question" ? "この質問で調べる →" : "この仮説で次の例を探す →";
   const chip = composing ? { kind: "composing", label: "変換中" } : !readingFresh || !preview?.kind ? { kind: "none", label: "—" } : preview.needsKind ? { kind: "unsure", label: "質問？ 仮説？" } : preview.kind === "question" ? { kind: "question", label: "質問" } : preview.kind === "assertion" ? { kind: "assertion", label: "仮説" } : { kind: "other", label: "その他" };
-  useEffect(() => { latest.current = { started, ended, busy, composing, support: support !== null, hypothesis, readingFresh, casesSeen: shown.length, submissions: Math.max(entries.length, history.length) }; });
+  useEffect(() => { latest.current = { started, ended, busy, composing, support: support !== null, hypothesis, readingFresh, casesSeen: shown.length, submissions: Math.max(entries.length, history.length), submitted: !!lastSubmitted && hypothesis.trim() === lastSubmitted }; });
   const nextUnseen = LRU_CASES.find((c) => !shown.includes(c.id));
   // 条件の軸だけを映す。条件がひとつも映らないときだけ「ルールを述べている」を出し、鏡を空にしない。
   // 表示閾値 0.35: 0.2 台の薄い反応まで映すと、触れていない軸（例: 1個だけの特例）の名前が漏れる
@@ -230,18 +254,18 @@ export default function LruQuest() {
   const askedTopics = [...new Set(entries.flatMap((entry) => entry.question?.topic ? [entry.question.topic] : []))];
 
   return <main className="lru-app">
-    <header className="quest-header"><a className="wordmark" href="/">仮説クエスト<span>読む前に、自分の説明を試す。</span></a><span className="subject-tag">LLM回答・レビュー提出版</span></header>
+    <header className="quest-header"><a className="wordmark" href="/">仮説クエスト<span>読む前に、自分の説明を試す。</span></a><div className="quest-actions"><span className="subject-tag">LLM回答・レビュー提出版</span><SessionControls disabled={busy || (started && !notebookReady)} onResetting={(resetting) => { if (resetting) { invalidateSupport(); ++readSequence.current; readController.current?.abort(); } setBusy(resetting); }} /></div></header>
     {!started ? <>
       <section className="intro-hero"><div className="eyebrow">あなたはCPythonのメンテナ。今日はPRをレビューします。</div><h1>「同じ引数」のはずなのに。<br />この修正、マージしていい？</h1><p>届いたのは「1と1.0を同じ呼び出しとして扱う」という提案。<br />判断する前に、いまの実装が何を「同じ」とみなしているか、あなたの言葉で確かめます。</p></section>
       <Story />
       <section className="setup-card"><div><div className="eyebrow">まず、ここだけわかれば大丈夫</div><h2>計算結果を覚えて、次に使い回す</h2><p><code>f</code>は重い計算をする関数。<code>y=0</code>は「2つ目の値を省略したら0」という意味です。キャッシュに当たれば、本体をもう一度動かさず結果を返します。</p><p className="small-note">イシューの論点を、この小さな関数で再現します。実測はCPython 3.12.3。これは説明用の関数で、PRの追加コードではありません。</p></div><pre><code>{"@lru_cache(maxsize=None)\ndef f(x, y=0):\n    return x + y  # 重い計算の代わり\n\nf(1)     # x=1, y=0\nf(1, 0)  # こちらも x=1, y=0"}</code></pre></section>
-      <div className="start-row"><button onClick={() => { setStarted(true); show(LRU_CASES[0]); }}>このイシューを確かめる →</button><span>現状を観察 → 自分の説明を試す → レビューコメントを書く</span></div>
+      <div className="start-row"><button disabled={busy} onClick={() => { setStarted(true); show(LRU_CASES[0]); }}>このイシューを確かめる →</button><span>現状を観察 → 自分の説明を試す → レビューコメントを書く</span></div>
       <footer className="scope-note">扱うのは「呼び出しの同一性」。保存件数や追い出し順序は今回の範囲外です。<a href="/orders">開発用の注文API</a></footer>
     </> : <>
       <details className="context-recap"><summary>何のイシュー・PRだった？ 背景を読み返す</summary><Story /></details>
       <section className="workspace">
-        <div className="explore-column" ref={resultRef}>
-          <div className="section-heading"><div><div className="eyebrow">OBSERVE / 呼び出しを比べる</div><h1>何が「同じ」を分けている？</h1></div><span>{shown.length} / 7 事例</span></div>
+        <div className="explore-column">
+          <div className="section-heading" ref={resultRef} tabIndex={-1}><div><div className="eyebrow">OBSERVE / 呼び出しを比べる</div><h1>何が「同じ」を分けている？</h1></div><span>{shown.length} / 7 事例</span></div>
           {question && <article className="observation-card question-answer" aria-label="質問への返答">
             <div className="eyebrow">ASK / 検証済みの比較から答える</div>
             <p className="small-note">質問を次の形で読み替えて回答しています。意味が違ったら書き直してください。</p>
@@ -266,30 +290,31 @@ export default function LruQuest() {
             {pair && <div className="pair-invitation"><strong>1個と2個、並べて確かめる</strong>{shown.includes(pair.id) ? <div className="contrast-pair">{[LRU_CASES[4], LRU_CASES[5]].map((c) => <div key={c.id}><span>{c.id} · {c.calls.join(" → ")}</span><b>{LRU_LABEL[c.actual]}</b></div>)}</div> : <button className="ghost" disabled={busy} onClick={() => show(pair)}>{pair.id}「{pair.title}」も見る</button>}</div>}
             <details className="evidence"><summary>根拠を見る：イシューと実装のどこ？</summary><p><a href={current.evidence.url} target="_blank" rel="noreferrer">{current.evidence.title} ↗</a> · <a href={`${LRU_SOURCE}#L${current.evidence.line}`} target="_blank" rel="noreferrer">CPython 3.12.3の該当行 ↗</a></p><pre><code>{current.evidence.code}</code></pre><p className="small-note">実行結果は scripts/verify-lru.py で再検証できます。純Python実装の対応箇所へのリンクです。</p></details>
           </article>}
-          {ended && <article className="observation-card ending"><h2>{shown.length === 7 ? "7つの事例を見終えました。" : `${shown.length}つの事例から、レビューを書く。`}</h2><p>見たことと、すべて説明できたことは別です。マージするか、見送るか、追加の確認が必要か。あなたの判断を言葉にしてみてください。</p><ReviewPanel initialHypothesis={entries.findLast((entry) => entry.kind === "assertion")?.hypothesis || confirmed} initialReview={review} onBusy={setBusy} /><details className="evidence"><summary>実際のメンテナの返答と比べる</summary><p>bpo-39554では、Raymond Hettingerは「typed=Falseは等しい値を必ず同一視する約束ではなく、別扱いする余地を残す。その自由度でint向けの省スペース経路を設けた」と説明しています（要約）。</p><p><a href="https://bugs.python.org/issue39554" target="_blank" rel="noreferrer">実際の議論を読む ↗</a> · 結末はnot a bug。あなたのコメントの採点ではありません。</p><pre><code>{"# 見つけた違いが表れる場所\nkey = args                       # 渡された引数の並び\nfor item in kwds.items():         # キーワードの順番\n    key += item\nif typed:                        # 型を含める設定\n    key += tuple(type(v) for v in args)\nelif len(key) == 1 and type(key[0]) in fasttypes:\n    return key[0]                # このPRが外す近道\nreturn _HashedSeq(key)"}</code></pre><a href={`${LRU_SOURCE}#L448`} target="_blank" rel="noreferrer">_make_keyの全体を見る ↗</a><p className="small-note">抜粋は対応箇所の説明です。PRを実際に適用した後の性能・メモリ使用量は、この探索では測定していません。</p></details><p>残った疑問と、下の未確認の論点も持ち帰ってください。</p><button disabled={busy} onClick={() => { setShown([]); setHistory([]); setResults([]); setConfirmed(""); setError(null); setExtra(false); show(LRU_CASES[0]); }}>この仮説でもう一周する</button></article>}
+          {reviewOpened && <article className="observation-card ending" hidden={!ended}><h2>{shown.length === 7 ? "7つの事例を見終えました。" : `${shown.length}つの事例から、レビューを書く。`}</h2><p>見たことと、すべて説明できたことは別です。マージするか、見送るか、追加の確認が必要か。あなたの判断を言葉にしてみてください。</p><button className="ghost" disabled={busy} onClick={() => show(LRU_CASES.find((card) => card.id === shown.at(-1)) ?? LRU_CASES[0])}>質問・観察を続ける</button><p className="small-note">帳面・レビュー下書き・提出済みの回答を残して戻れます。</p><ReviewPanel initialHypothesis={entries.findLast((entry) => entry.kind === "assertion")?.hypothesis || confirmed} initialReview={review} onBusy={setBusy} onHoldoutSeen={() => setHoldoutSeen(true)} /><details className="evidence"><summary>実際のメンテナの返答と比べる</summary><p>bpo-39554では、Raymond Hettingerは「typed=Falseは等しい値を必ず同一視する約束ではなく、別扱いする余地を残す。その自由度でint向けの省スペース経路を設けた」と説明しています（要約）。</p><p><a href="https://bugs.python.org/issue39554" target="_blank" rel="noreferrer">実際の議論を読む ↗</a> · 結末はnot a bug。あなたのコメントの採点ではありません。</p><pre><code>{"# 見つけた違いが表れる場所\nkey = args                       # 渡された引数の並び\nfor item in kwds.items():         # キーワードの順番\n    key += item\nif typed:                        # 型を含める設定\n    key += tuple(type(v) for v in args)\nelif len(key) == 1 and type(key[0]) in fasttypes:\n    return key[0]                # このPRが外す近道\nreturn _HashedSeq(key)"}</code></pre><a href={`${LRU_SOURCE}#L448`} target="_blank" rel="noreferrer">_make_keyの全体を見る ↗</a><p className="small-note">抜粋は対応箇所の説明です。PRを実際に適用した後の性能・メモリ使用量は、この探索では測定していません。</p></details><p>残った疑問と、下の未確認の論点も持ち帰ってください。</p><button disabled={busy} onClick={() => { setShown([]); setHistory([]); setResults([]); setConfirmed(""); setError(null); setExtra(false); show(LRU_CASES[0]); }}>この仮説でもう一周する</button></article>}
           <details className="case-map" ref={caseMap}><summary>用意した事例を見る · {shown.length}/7 確認済み</summary><p className="small-note">自由に開けます。表示しただけで、説明できたとは扱いません。</p>{LRU_CASES.map((c) => <button key={c.id} disabled={busy} className={shown.includes(c.id) ? "visited" : ""} onClick={() => show(c)}>{shown.includes(c.id) ? "✓" : "○"} {c.id} {c.title}</button>)}</details>
-          <section className="unexplored"><h2>まだ確かめていないこと</h2><button className="ghost" onClick={() => setExtra(!extra)}>{extra ? "閉じる" : "L8 リストを渡すと？（別の論点）"}</button>{extra && <div className="extra-result"><code>{LRU_EXTRA.call}</code><p>{LRU_EXTRA.observation}</p><a href={`${LRU_SOURCE}#L443`} target="_blank" rel="noreferrer">ハッシュを作る箇所を見る ↗</a></div>}<ul>{LRU_UNEXPLORED.map((text) => <li key={text}>{text}</li>)}</ul></section>
+          <section className="unexplored"><h2>まだ確かめていないこと</h2><button className="ghost" onClick={() => setExtra(!extra)}>{extra ? "閉じる" : "L8 リストを渡すと？（別の論点）"}</button>{extra && <div className="extra-result"><code>{LRU_EXTRA.call}</code><p>{LRU_EXTRA.observation}</p><a href={`${LRU_SOURCE}#L443`} target="_blank" rel="noreferrer">ハッシュを作る箇所を見る ↗</a></div>}<ul>{LRU_UNEXPLORED.filter((text) => !holdoutSeen || text !== LRU_HOLDOUT_PROMPT).map((text) => <li key={text}>{text}</li>)}</ul></section>
         </div>
-        <aside className="hypothesis-column">
+        <aside className="hypothesis-column" ref={inputColumn}>
           <section className="hypothesis-card"><div className="eyebrow">ASK & EXPLAIN / 質問と仮説</div><h2><label htmlFor="hypothesis">どんな呼び出しなら、記憶を使える？</label></h2><p>質問からでも、仮説からでも大丈夫。「型は関係ある？」と聞いたり、「同じ引数なら記憶を返す」と説明してみてください。</p>
-            <textarea id="hypothesis" ref={input} value={hypothesis} maxLength={1000} disabled={busy || ended} placeholder="例：同じ引数で呼べば記憶を返す" onChange={(e) => { setHypothesis(e.target.value); setClarify(false); signals.current.inputAt = Date.now(); if (support?.kind === "send") setSupport(null); }} onFocus={() => { signals.current.focused = true; }} onBlur={() => { signals.current.focused = false; }} onCompositionStart={() => { composingRef.current = true; ++readSequence.current; readController.current?.abort(); setComposing(true); }} onCompositionEnd={() => { composingRef.current = false; setComposing(false); }} onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) { e.preventDefault(); void submit(); } }} />
+            <textarea id="hypothesis" ref={input} value={hypothesis} maxLength={1000} disabled={busy || ended} placeholder="例：同じ引数で呼べば記憶を返す" onChange={(e) => { setHypothesis(e.target.value); setClarify(false); signals.current.inputAt = Date.now(); invalidateSupport(); }} onFocus={() => { signals.current.focused = true; }} onBlur={() => { signals.current.focused = false; }} onCompositionStart={() => { composingRef.current = true; ++readSequence.current; readController.current?.abort(); invalidateSupport(); setComposing(true); }} onCompositionEnd={() => { composingRef.current = false; setComposing(false); }} onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.nativeEvent.isComposing) { e.preventDefault(); void submit(); } }} />
             <div className="reading-preview" data-state={readingState} aria-busy={readingState === "reading"}>
-              <div className="reading-heading"><span className="input-chip" data-kind={chip.kind} aria-label="入力の種別">{chip.label}</span><span className="core-meter" aria-label="核心度"><span>核心度</span><i><b style={{ width: `${coreness * 100}%` }} /></i><span>{coreness.toFixed(1)}</span></span><span>{composing ? "文字を変換中" : readingState === "reading" ? "読み取り中…" : readingState === "waiting" ? "入力を待っています" : readingState === "error" ? "今は読み取れません" : readingFresh ? "読み取り済み" : "入力すると読みます"}</span></div>
-              {readingState === "error" ? <p className="small-note">読み取りは使えません（送信は可能です）。</p> : readingFresh && preview?.kind === "question" ? <p className="small-note">{!preview.needsTopic && preview.topic && preview.topic in QUESTION_TOPICS ? `話題：${QUESTION_TOPICS[preview.topic as keyof typeof QUESTION_TOPICS].label}` : "質問の範囲を確認しています"}</p> : <details className="reading-detail"><summary>読み取りの内訳</summary><div className={readingFresh && !composing ? "axis-list" : "axis-list provisional"}>{visibleAxes.map((axis) => <div className={preview!.reading[axis] < 0.6 ? "axis uncertain" : "axis"} key={axis}><span>{LRU_AXES[axis].label}{preview!.reading[axis] >= 0.4 && preview!.reading[axis] < 0.6 ? "（まだ読み切れていません）" : ""}</span><div role="meter" aria-label={LRU_AXES[axis].label} aria-valuemin={0} aria-valuemax={1} aria-valuenow={readingFresh ? preview.reading[axis] : 0}><i style={{ width: `${readingFresh ? preview.reading[axis] * 100 : 0}%` }} /></div></div>)}{visibleAxes.length === 0 && <p className="small-note">まだ何も映っていません。</p>}</div><p className="small-note">棒は、文にその条件があるとJevが読んだ強さです。正しさの点数ではありません。核心度は、型や1個だけの扱いに触れている強さです。</p></details>}
+              <div className="reading-heading"><span className="input-chip" data-kind={chip.kind} aria-label="入力の種別">{chip.label}</span><span className="core-meter" aria-label="核心度"><span>核心度</span><i><b style={{ width: `${(coreness ?? 0) * 100}%` }} /></i><span>{coreness === null ? "—" : coreness.toFixed(1)}</span></span><span>{composing ? "文字を変換中" : readingState === "reading" ? "読み取り中…" : readingState === "waiting" ? "入力を待っています" : readingState === "error" ? "今は読み取れません" : readingFresh ? "読み取り済み" : "入力すると読みます"}</span></div>
+              <p className="small-note">核心度は、核心の話題への関連度です。正しさや理解度ではありません。</p>
+              {readingState === "error" ? <p className="small-note">読み取りは使えません（送信は可能です）。</p> : readingFresh && preview?.kind === "question" ? <p className="small-note">{!preview.needsTopic && preview.topic && preview.topic in QUESTION_TOPICS ? `話題：${QUESTION_TOPICS[preview.topic as keyof typeof QUESTION_TOPICS].label}` : "質問の範囲を確認しています"}</p> : <details className="reading-detail"><summary>読み取りの内訳</summary><div className={readingFresh && !composing ? "axis-list" : "axis-list provisional"}>{visibleAxes.map((axis) => <div className={preview!.reading[axis] < 0.6 ? "axis uncertain" : "axis"} key={axis}><span>{LRU_AXES[axis].label}{preview!.reading[axis] >= 0.4 && preview!.reading[axis] < 0.6 ? "（まだ読み切れていません）" : ""}</span><div role="meter" aria-label={LRU_AXES[axis].label} aria-valuemin={0} aria-valuemax={1} aria-valuenow={readingFresh ? preview.reading[axis] : 0}><i style={{ width: `${readingFresh ? preview.reading[axis] * 100 : 0}%` }} /></div></div>)}{visibleAxes.length === 0 && <p className="small-note">まだ何も映っていません。</p>}</div><p className="small-note">棒は、文にその条件があるとJevが読んだ強さです。正しさの点数ではありません。</p></details>}
             </div>
-            <button className="try-button" disabled={busy || ended || !notebookReady || !hypothesis.trim() || composing} onClick={() => void submit()}>{busy ? "入力を確かめています…" : readingFresh && preview?.kind === "question" ? "この質問で調べる →" : "この仮説で次の例を探す →"}</button>
+            <button className="try-button" disabled={busy || ended || !notebookReady || !hypothesis.trim() || composing} onClick={() => void submit()}>{busy ? "入力を確かめています…" : sendLabel}</button>
             {clarify && <div className="kind-confirm" role="status"><p>質問と仮説のどちらとして読めばいいですか？ 混ざっている場合は、一文ずつ試せます。</p><button disabled={busy} onClick={() => void submit("question")}>質問として調べる</button><button className="ghost" disabled={busy} onClick={() => void submit("assertion")}>仮説として試す</button></div>}
 
             {error && <p role="alert" className="err">{error}</p>}
-            {support && !ended && <SupportCard key={support.kind} kind={support.kind} source={support.source} busy={busy}
-              onInsert={(text) => { setHypothesis(text); signals.current.inputAt = Date.now(); setSupport(null); input.current?.focus(); }}
+            {support && !ended && <SupportCard key={support.kind} kind={support.kind} source={support.source} busy={busy || composing || !notebookReady} sendLabel={sendLabel} inputKind={readingFresh ? preview?.kind : undefined}
+              onInsert={(text) => { invalidateSupport(); setHypothesis(text); setClarify(false); signals.current.inputAt = Date.now(); input.current?.focus(); }}
               onNext={() => { setSupport(null); if (nextUnseen) { setResults([]); setConfirmed(""); setError(null); show(nextUnseen); } else { finish(); } }}
               onOpenMap={() => { setSupport(null); if (caseMap.current) { caseMap.current.open = true; caseMap.current.scrollIntoView({ behavior: "smooth", block: "start" }); } }}
               onSend={() => void submit()}
-              onClose={() => { supportDismissed.current.add(support.kind); supportAt.current = Date.now() + 30_000; setSupport(null); }} />}
+              onClose={() => { supportDismissed.current.add(support.kind); supportAt.current = Date.now() + 30_000; invalidateSupport(); }} />}
             <div className="secondary-actions">
               <button className="text-button" disabled={busy || ended} onClick={() => { if (nextUnseen) { setResults([]); setConfirmed(""); setError(null); show(nextUnseen); } else { finish(); } }}>{nextUnseen ? "仮説なしで、次の事例を観察する" : "事例の確認を終える"}</button>
-              {!ended && <button className="text-button" disabled={busy} onClick={() => setSupport({ kind: hypothesis.trim() ? "stuck" : "start", source: "manual" })}>ヒント</button>}
+              {!ended && <button className="text-button" disabled={busy} onClick={() => { invalidateSupport(); setSupport({ kind: hypothesis.trim() ? "stuck" : "start", source: "manual" }); }}>ヒント</button>}
               {!ended && <button className="ghost finish-button" disabled={busy} onClick={finish}>観察を区切ってレビューを書く</button>}
             </div>
           </section>

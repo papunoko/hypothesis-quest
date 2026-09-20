@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("実Jevの質問→D1帳面→再読込→レビューと、他ブラウザとの分離", async ({ page, browser }, info) => {
   await page.goto("/"); await page.getByRole("button", { name: "このイシューを確かめる →" }).click();
   await page.getByRole("textbox").fill("型は関係ある？");
-  await expect(page.getByText("質問として読んでいます", { exact: true })).toBeVisible({ timeout: 25000 });
+  await expect(page.getByLabel("入力の種別")).toHaveText("質問", { timeout: 25000 });
   await page.getByRole("button", { name: "この質問で調べる →" }).click();
   await expect(page.getByRole("article", { name: "質問への返答" })).toContainText("場合による", { timeout: 25000 });
   await expect(page.locator(".notebook")).toContainText("型は関係ある？");

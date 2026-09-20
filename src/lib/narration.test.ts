@@ -39,3 +39,11 @@ test("3つの検問を同じ根拠でまとめ、0.30以上または不正応答
     assert.equal(await screenText({ ...context, mode: "hint" }, "理由を説明する"), true);
   } finally { if (previous === undefined) delete process.env.JEV_API_KEY; else process.env.JEV_API_KEY = previous; }
 });
+
+test("内部フィールド名の露出はJevを呼ぶ前に表示を見送る", async (t) => {
+  const mock = t.mock.method(globalThis, "fetch", async () => { throw new Error("must not call"); });
+  for (const label of ["allowedFacts", "playerText", "maintainerResponse", "comparisonFromInterpretedHypothesis", "interpretationAvailable"]) {
+    assert.equal(await screenText({ ...context, mode: "review" }, `${label}には測定結果がありません。`), false);
+  }
+  assert.equal(mock.mock.callCount(), 0);
+});

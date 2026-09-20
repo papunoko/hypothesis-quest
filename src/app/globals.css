@@ -50,6 +50,8 @@ details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
 .lru-app { --accent: #24675f; max-width: 1220px; padding: 24px 32px 56px; }
 .lru-app a { color: #24675f; text-underline-offset: 4px; }
 .quest-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+.quest-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
+.session-controls { font-size: 12px; }
 .wordmark { text-decoration: none; font-size: 20px; font-weight: 750; color: var(--ink) !important; }
 .wordmark span { display: inline-block; margin-left: 20px; font-size: 12px; color: var(--muted); font-weight: 400; }
 .subject-tag { border: 1px solid #c7d9d2; background: #eef4ef; border-radius: 40px; padding: 5px 12px; font-size: 12px; white-space: nowrap; }

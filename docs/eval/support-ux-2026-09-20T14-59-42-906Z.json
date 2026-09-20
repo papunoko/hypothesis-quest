@@ -1,0 +1,612 @@
+[
+  {
+    "text": "同じ引数で呼べば記憶を返す",
+    "run": 1,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.96,
+        "form": 0.08,
+        "order": 0.04,
+        "types": 0.27,
+        "singleFast": 0.15,
+        "typed": 0.03
+      },
+      "kind": "assertion",
+      "topic": "unsupported",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "assertion": 1,
+        "question": 0,
+        "other": 0
+      },
+      "coreRelevance": 0.07
+    },
+    "question": null,
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.84,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "同じ引数で呼べば記憶を返す",
+    "run": 2,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.96,
+        "form": 0.08,
+        "order": 0.05,
+        "types": 0.27,
+        "singleFast": 0.16,
+        "typed": 0.03
+      },
+      "kind": "assertion",
+      "topic": "unsupported",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "other": 0,
+        "assertion": 1,
+        "question": 0
+      },
+      "coreRelevance": 0.07
+    },
+    "question": null,
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.84,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "書き方は関係ある？",
+    "run": 1,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.06,
+        "form": 0.37,
+        "order": 0.04,
+        "types": 0.2,
+        "singleFast": 0.08,
+        "typed": 0.03
+      },
+      "kind": "question",
+      "topic": "form",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "assertion": 0.01,
+        "question": 0.99,
+        "other": 0
+      },
+      "coreRelevance": 0.1
+    },
+    "question": {
+      "topic": "form",
+      "question": "値が同じでも、省略・位置・名前の書き方を変えると記憶の使い方は変わる？",
+      "answer": "はい",
+      "cases": [
+        "L2",
+        "L3"
+      ],
+      "core": false,
+      "note": "これは表示した比較テストでの答えです。あらゆる呼び出しについての保証ではありません。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "undetermined",
+      "confidence": 0,
+      "verdict": "undetermined"
+    }
+  },
+  {
+    "text": "書き方は関係ある？",
+    "run": 2,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.05,
+        "form": 0.36,
+        "order": 0.04,
+        "types": 0.19,
+        "singleFast": 0.09,
+        "typed": 0.03
+      },
+      "kind": "question",
+      "topic": "form",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "assertion": 0.01,
+        "other": 0,
+        "question": 0.99
+      },
+      "coreRelevance": 0.1
+    },
+    "question": {
+      "topic": "form",
+      "question": "値が同じでも、省略・位置・名前の書き方を変えると記憶の使い方は変わる？",
+      "answer": "はい",
+      "cases": [
+        "L2",
+        "L3"
+      ],
+      "core": false,
+      "note": "これは表示した比較テストでの答えです。あらゆる呼び出しについての保証ではありません。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "undetermined",
+      "confidence": 0,
+      "verdict": "undetermined"
+    }
+  },
+  {
+    "text": "型は関係ある？",
+    "run": 1,
+    "ok": false,
+    "reading": {
+      "reading": {
+        "rule": 0.17,
+        "form": 0.08,
+        "order": 0.03,
+        "types": 0.42,
+        "singleFast": 0.13,
+        "typed": 0.14
+      },
+      "kind": "question",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "question": 1,
+        "assertion": 0,
+        "other": 0
+      },
+      "coreRelevance": 0.62
+    },
+    "question": {
+      "topic": "types",
+      "question": "typed=Falseで、等しい値の型を変えると毎回別扱いになる？",
+      "answer": "場合による",
+      "cases": [
+        "L5",
+        "L6"
+      ],
+      "core": true,
+      "note": "結果が分かれました。2枚を比べて、違いを1つ探してみてください。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "undetermined",
+      "confidence": 0,
+      "verdict": "undetermined"
+    }
+  },
+  {
+    "text": "型は関係ある？",
+    "run": 2,
+    "ok": false,
+    "reading": {
+      "reading": {
+        "rule": 0.17,
+        "form": 0.08,
+        "order": 0.03,
+        "types": 0.42,
+        "singleFast": 0.12,
+        "typed": 0.15
+      },
+      "kind": "question",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "question": 1,
+        "other": 0,
+        "assertion": 0
+      },
+      "coreRelevance": 0.64
+    },
+    "question": {
+      "topic": "types",
+      "question": "typed=Falseで、等しい値の型を変えると毎回別扱いになる？",
+      "answer": "場合による",
+      "cases": [
+        "L5",
+        "L6"
+      ],
+      "core": true,
+      "note": "結果が分かれました。2枚を比べて、違いを1つ探してみてください。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "undetermined",
+      "confidence": 0,
+      "verdict": "undetermined"
+    }
+  },
+  {
+    "text": "順番は関係ないの？",
+    "run": 1,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.2,
+        "form": 0.11,
+        "order": 0.04,
+        "types": 0.07,
+        "singleFast": 0.12,
+        "typed": 0.02
+      },
+      "kind": "question",
+      "topic": "order",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "question": 0.99,
+        "other": 0,
+        "assertion": 0.01
+      },
+      "coreRelevance": 0.05
+    },
+    "question": {
+      "topic": "order",
+      "question": "キーワード引数の順番だけを変えると記憶の使い方は変わる？",
+      "answer": "はい",
+      "cases": [
+        "L4"
+      ],
+      "core": false,
+      "note": "これは表示した比較テストでの答えです。あらゆる呼び出しについての保証ではありません。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "undetermined",
+      "confidence": 0,
+      "verdict": "undetermined"
+    }
+  },
+  {
+    "text": "順番は関係ないの？",
+    "run": 2,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.22,
+        "form": 0.11,
+        "order": 0.04,
+        "types": 0.07,
+        "singleFast": 0.1,
+        "typed": 0.02
+      },
+      "kind": "question",
+      "topic": "order",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "other": 0,
+        "assertion": 0.01,
+        "question": 0.99
+      },
+      "coreRelevance": 0.05
+    },
+    "question": {
+      "topic": "order",
+      "question": "キーワード引数の順番だけを変えると記憶の使い方は変わる？",
+      "answer": "はい",
+      "cases": [
+        "L4"
+      ],
+      "core": false,
+      "note": "これは表示した比較テストでの答えです。あらゆる呼び出しについての保証ではありません。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "undetermined",
+      "confidence": 0,
+      "verdict": "undetermined"
+    }
+  },
+  {
+    "text": "引数の型が違っても、値が同じなら記憶を使えますか？",
+    "run": 1,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.95,
+        "form": 0.09,
+        "order": 0.03,
+        "types": 0.22,
+        "singleFast": 0.18,
+        "typed": 0.06
+      },
+      "kind": "question",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "assertion": 0.1,
+        "other": 0,
+        "question": 0.9
+      },
+      "coreRelevance": 0.87
+    },
+    "question": {
+      "topic": "types",
+      "question": "typed=Falseで、等しい値の型を変えると毎回別扱いになる？",
+      "answer": "場合による",
+      "cases": [
+        "L5",
+        "L6"
+      ],
+      "core": true,
+      "note": "結果が分かれました。2枚を比べて、違いを1つ探してみてください。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.8200000000000001,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "引数の型が違っても、値が同じなら記憶を使えますか？",
+    "run": 2,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.95,
+        "form": 0.09,
+        "order": 0.03,
+        "types": 0.21,
+        "singleFast": 0.21,
+        "typed": 0.07
+      },
+      "kind": "question",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "other": 0,
+        "question": 0.92,
+        "assertion": 0.08
+      },
+      "coreRelevance": 0.87
+    },
+    "question": {
+      "topic": "types",
+      "question": "typed=Falseで、等しい値の型を変えると毎回別扱いになる？",
+      "answer": "場合による",
+      "cases": [
+        "L5",
+        "L6"
+      ],
+      "core": true,
+      "note": "結果が分かれました。2枚を比べて、違いを1つ探してみてください。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.8200000000000001,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "型が違えば別の呼び出しになる",
+    "run": 1,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.87,
+        "form": 0.09,
+        "order": 0.03,
+        "types": 0.85,
+        "singleFast": 0.17,
+        "typed": 0.21
+      },
+      "kind": "assertion",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "other": 0,
+        "assertion": 1,
+        "question": 0
+      },
+      "coreRelevance": 0.74
+    },
+    "question": null,
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.74,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "型が違えば別の呼び出しになる",
+    "run": 2,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.88,
+        "form": 0.09,
+        "order": 0.03,
+        "types": 0.86,
+        "singleFast": 0.17,
+        "typed": 0.2
+      },
+      "kind": "assertion",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "question": 0,
+        "other": 0,
+        "assertion": 1
+      },
+      "coreRelevance": 0.75
+    },
+    "question": null,
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.76,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "型は関係なく、値が同じなら記憶を返す",
+    "run": 1,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.91,
+        "form": 0.06,
+        "order": 0.03,
+        "types": 0.05,
+        "singleFast": 0.2,
+        "typed": 0.04
+      },
+      "kind": "assertion",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "assertion": 1,
+        "other": 0,
+        "question": 0
+      },
+      "coreRelevance": 0.85
+    },
+    "question": null,
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.8200000000000001,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "型は関係なく、値が同じなら記憶を返す",
+    "run": 2,
+    "ok": true,
+    "reading": {
+      "reading": {
+        "rule": 0.92,
+        "form": 0.06,
+        "order": 0.03,
+        "types": 0.04,
+        "singleFast": 0.18,
+        "typed": 0.04
+      },
+      "kind": "assertion",
+      "topic": "types",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "other": 0,
+        "assertion": 1,
+        "question": 0
+      },
+      "coreRelevance": 0.84
+    },
+    "question": null,
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.8400000000000001,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "引数の個数で変わる？",
+    "run": 1,
+    "ok": false,
+    "reading": {
+      "reading": {
+        "rule": 0.81,
+        "form": 0.18,
+        "order": 0.03,
+        "types": 0.14,
+        "singleFast": 0.15,
+        "typed": 0.03
+      },
+      "kind": "question",
+      "topic": "arity",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "other": 0,
+        "assertion": 0.08,
+        "question": 0.92
+      },
+      "coreRelevance": 0.49
+    },
+    "question": {
+      "topic": "arity",
+      "question": "型を変えたときの結果は、引数が1個か2個かで変わる？",
+      "answer": "はい",
+      "cases": [
+        "L5",
+        "L6"
+      ],
+      "core": true,
+      "note": "これは表示した比較テストでの答えです。あらゆる呼び出しについての保証ではありません。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.6200000000000001,
+      "verdict": "mismatch"
+    }
+  },
+  {
+    "text": "引数の個数で変わる？",
+    "run": 2,
+    "ok": false,
+    "reading": {
+      "reading": {
+        "rule": 0.8,
+        "form": 0.17,
+        "order": 0.04,
+        "types": 0.15,
+        "singleFast": 0.15,
+        "typed": 0.03
+      },
+      "kind": "question",
+      "topic": "arity",
+      "needsKind": false,
+      "needsTopic": false,
+      "kindProbabilities": {
+        "question": 0.93,
+        "assertion": 0.07,
+        "other": 0
+      },
+      "coreRelevance": 0.46
+    },
+    "question": {
+      "topic": "arity",
+      "question": "型を変えたときの結果は、引数が1個か2個かで変わる？",
+      "answer": "はい",
+      "cases": [
+        "L5",
+        "L6"
+      ],
+      "core": true,
+      "note": "これは表示した比較テストでの答えです。あらゆる呼び出しについての保証ではありません。"
+    },
+    "next": {
+      "id": "L2",
+      "prediction": "remembered",
+      "confidence": 0.6000000000000001,
+      "verdict": "mismatch"
+    }
+  }
+]

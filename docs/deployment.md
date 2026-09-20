@@ -9,6 +9,8 @@
 
 2026-09-20 夜の品質修正（F-01/F-02/F-03/H-08）は**ローカルのみ、未デプロイ**。Workerビルド・ローカルWorkerのPlaywright18件（実Jev/LLM5件を含む）通過。本番バージョン・期限・Route・Secretsに変更なし。
 
+2026-09-21の試遊修正（F-11〜F-16）も**未デプロイ**。核心度表示のNoulを既存Jevリクエストに1問追加（回数は同じ、トークンは増える）。`POST /api/session` はアプリのセッションCookieのみ更新し、D1の削除やmigrationはしない。同一OriginのPOST限定、既存のその他POST API制限（20回/分）と公開期限の対象。最終のローカル検証は [試遊記録](eval/journey-check-2026-09-21-support-ux.md) を参照。
+
 ## 構成
 
 - `wrangler.jsonc`: Worker `hypothesis-quest`、Worker Route `ebiharadev.org/*`（apexのみ）。既存のプロキシDNSを維持。workers.dev/プレビューURLは無効。
@@ -65,6 +67,8 @@ npx wrangler secret put OLLAMA_API_KEY
 
 ## デプロイ
 
+2026-09-21最終ラウンドはH1表示・解説の整合性・通常回答の先出し検問も修正。セッション切替を含めDBスキーマ・Secrets・Routeの変更は不要。既存の期限と課金API制限を維持して更新する。公開完了のバージョンと検証は冒頭へ記録する。
+
 ```powershell
 npm test
 npm run test:e2e
@@ -96,6 +100,7 @@ UIテストは応答固定。liveは実Jev/Ollamaを呼び利用量が発生す�
 
 - 認証・保持期間・削除UIは未実装。匿名公開なので第三者も有料AI APIを利用できる。レート制限はあるが、請求のハード上限ではない。
 - Cookieを失うと履歴へアクセスできなくなるが、DBは自動削除されない。localhostのCookieも本番へは引き継がない。
+- 「新しいセッションを始める」は確認後にCookieを新しいIDへ更新する。削除UIではない。同一ホストのCookieはポートをまたいで共有されるため、localhost:3002/8787の他タブで続ける前には再読込する。別のブラウザ/プロファイルは別セッション。
 - 旧DBのクラウド移行は別作業。利用者の入力を自動でアップロードしない。
 - Workers/D1の利用枠、CPU/サイズ制限、課金は対象アカウントで確認する。
 

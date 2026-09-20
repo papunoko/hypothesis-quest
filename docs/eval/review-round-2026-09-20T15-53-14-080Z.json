@@ -1,0 +1,199 @@
+{
+  "at": "2026-09-20T15:53:09.679Z",
+  "context": {
+    "mode": "review",
+    "playerText": "{\"hypothesis\":\"引数の並びをそのまま鍵にする。ただし int か str が1個だけなら、その値自体が鍵になる。typed=Trueでは型も区別する\",\"review\":\"近道を外すなら、変更後のメモリ使用量と性能も検証してください。これは動作確認用のレビューです。\",\"decision\":\"追加検証・修正を依頼する\"}",
+    "allowedFacts": {
+      "scope": "CPython 3.12.3の変更前の実測。PRは演習用の架空の提案。変更後の性能やメモリは未測定。理解度の採点ではない。",
+      "checked": {
+        "stage": "全部",
+        "cleared": true,
+        "unasked": true,
+        "interpretationAvailable": true
+      },
+      "tests": [
+        {
+          "id": "L1",
+          "calls": [
+            "f(1)",
+            "f(1)"
+          ],
+          "typed": false,
+          "actual": "記憶した結果を返す",
+          "observation": "関数の本体が動いたのは合計1回。2回目は保存した結果を返しました。",
+          "code": "key = make_key(args, kwds, typed)",
+          "comparisonFromInterpretedHypothesis": {
+            "id": "L1",
+            "prediction": "remembered",
+            "confidence": 0.98,
+            "verdict": "match"
+          }
+        },
+        {
+          "id": "L2",
+          "calls": [
+            "f(1)",
+            "f(1, 0)"
+          ],
+          "typed": false,
+          "actual": "もう一度計算する",
+          "observation": "本体が合計2回動きました。y=0を省略した呼び出しと、明示した呼び出しは別の記憶です。",
+          "code": "key = args",
+          "comparisonFromInterpretedHypothesis": {
+            "id": "L2",
+            "prediction": "computed",
+            "confidence": 0.98,
+            "verdict": "match"
+          }
+        },
+        {
+          "id": "L3",
+          "calls": [
+            "f(1)",
+            "f(x=1)"
+          ],
+          "typed": false,
+          "actual": "もう一度計算する",
+          "observation": "本体が合計2回動きました。位置引数とキーワード引数は別に記録されます。",
+          "code": "if kwds:\n    key += kwd_mark",
+          "comparisonFromInterpretedHypothesis": {
+            "id": "L3",
+            "prediction": "computed",
+            "confidence": 0.98,
+            "verdict": "match"
+          }
+        },
+        {
+          "id": "L4",
+          "calls": [
+            "f(x=5, y=6)",
+            "f(y=6, x=5)"
+          ],
+          "typed": false,
+          "actual": "もう一度計算する",
+          "observation": "本体が合計2回動きました。キーワード引数の順番も記録に残ります。",
+          "code": "for item in kwds.items():\n    key += item",
+          "comparisonFromInterpretedHypothesis": {
+            "id": "L4",
+            "prediction": "computed",
+            "confidence": 0.98,
+            "verdict": "match"
+          }
+        },
+        {
+          "id": "L5",
+          "calls": [
+            "f(1)",
+            "f(1.0)"
+          ],
+          "typed": false,
+          "actual": "もう一度計算する",
+          "observation": "本体が合計2回動きました。typed=Falseでも、ここでは1と1.0は別扱いです。",
+          "code": "elif len(key) == 1 and type(key[0]) in fasttypes:\n    return key[0]",
+          "comparisonFromInterpretedHypothesis": {
+            "id": "L5",
+            "prediction": "computed",
+            "confidence": 0.98,
+            "verdict": "match"
+          }
+        },
+        {
+          "id": "L6",
+          "calls": [
+            "f(1, 2)",
+            "f(1.0, 2)"
+          ],
+          "typed": false,
+          "actual": "記憶した結果を返す",
+          "observation": "本体が動いたのは合計1回。今度は1と1.0を含む引数の並びが等しいものとして扱われました。",
+          "code": "return _HashedSeq(key)",
+          "comparisonFromInterpretedHypothesis": {
+            "id": "L6",
+            "prediction": "remembered",
+            "confidence": 0.98,
+            "verdict": "match"
+          }
+        },
+        {
+          "id": "L7",
+          "calls": [
+            "f(1, 2)",
+            "f(1.0, 2)"
+          ],
+          "typed": true,
+          "actual": "もう一度計算する",
+          "observation": "本体が合計2回動きました。typed=Trueでは、引数の型も記録に含まれます。",
+          "code": "if typed:\n    key += tuple(type(v) for v in args)",
+          "comparisonFromInterpretedHypothesis": {
+            "id": "L7",
+            "prediction": "computed",
+            "confidence": 0.98,
+            "verdict": "match"
+          }
+        }
+      ],
+      "investigated": [],
+      "maintainerResponse": "bpo-39554の返答の要約：typed=Falseは等しい値の同一視を要求しない。int向け省スペース経路を可能にする余地があり、int/floatが別になる。結論はnot a bug。"
+    },
+    "fallback": "現在の読み取りで説明が通る段階：全部。下の照合表と実際のメンテナの返答を比較してください。これは7事例の範囲での確認で、理解度やマージ判断の採点ではありません。"
+  },
+  "results": [
+    {
+      "kind": "screen",
+      "repeat": 1,
+      "text": "allowedFactsに測定結果が含まれていないため未検証です。",
+      "expected": false,
+      "accepted": false
+    },
+    {
+      "kind": "screen",
+      "repeat": 1,
+      "text": "7事例では不一致が残っています。intかstrが1個だけならその値自体を鍵にする仕組みは、提示されたコードに根拠がなく未確認です。",
+      "expected": false,
+      "accepted": false
+    },
+    {
+      "kind": "screen",
+      "repeat": 1,
+      "text": "用意した7事例では、現在の仮説の読み取りと実測が一致しています。変更後の性能やメモリは未測定なので、照合とは別に追加検証が必要です。",
+      "expected": true,
+      "accepted": true
+    },
+    {
+      "kind": "generated",
+      "repeat": 1,
+      "text": "用意した7事例において、説明と実測の結果は一致しました。読み取りから外れる点や未確定な事項はありません。\n\nなお、提出文で言及されている変更後のメモリ使用量と性能については、今回の実測範囲外となります。",
+      "model": "gemma4:31b",
+      "accepted": true
+    },
+    {
+      "kind": "screen",
+      "repeat": 2,
+      "text": "allowedFactsに測定結果が含まれていないため未検証です。",
+      "expected": false,
+      "accepted": false
+    },
+    {
+      "kind": "screen",
+      "repeat": 2,
+      "text": "7事例では不一致が残っています。intかstrが1個だけならその値自体を鍵にする仕組みは、提示されたコードに根拠がなく未確認です。",
+      "expected": false,
+      "accepted": false
+    },
+    {
+      "kind": "screen",
+      "repeat": 2,
+      "text": "用意した7事例では、現在の仮説の読み取りと実測が一致しています。変更後の性能やメモリは未測定なので、照合とは別に追加検証が必要です。",
+      "expected": true,
+      "accepted": true
+    },
+    {
+      "kind": "generated",
+      "repeat": 2,
+      "text": "用意した7事例において、説明と実測は一致しました。\n\nなお、提出文で言及されている変更後のメモリ使用量と性能については、今回の実測範囲外となります。",
+      "model": "gemma4:31b",
+      "accepted": true
+    }
+  ],
+  "failures": 0
+}

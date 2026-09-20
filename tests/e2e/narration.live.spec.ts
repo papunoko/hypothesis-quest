@@ -56,4 +56,27 @@ test("実LLMの質問回答・ヒント・最終提出の解説を検問し保�
   await page.getByText("保存した提出履歴 · 1件", { exact: true }).click();
   await page.getByRole("button", { name: /の回答を見直す/ }).click();
   await expect(page.getByRole("heading", { name: "レビューを受け付けました" })).toBeVisible();
+  // A completed review is not the end of questioning, nor a notebook reset.
+  await page.getByRole("button", { name: "質問・観察を続ける" }).click();
+  await page.getByRole("textbox").fill("書き方は関係ある？");
+  await expect(page.getByLabel("入力の種別")).toHaveText("質問", { timeout: 25000 });
+  await page.getByRole("button", { name: "この質問で調べる →" }).click();
+  await expect(page.getByRole("article", { name: "質問への返答" })).toContainText("はい", { timeout: 35000 });
+  await expect(page.locator(".notebook")).toContainText("型は関係ある？");
+  await page.getByRole("button", { name: "提出したレビューと回答を見る" }).click();
+  await expect(page.getByRole("heading", { name: "レビューを受け付けました" })).toBeVisible();
+
+  // Rotation loses access from this browser, but does not delete the old D1 records.
+  const previousCookies = await page.context().cookies();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "新しいセッションを始める" }).click();
+  await expect(page.getByRole("button", { name: "このイシューを確かめる →" })).toBeVisible();
+  expect((await (await page.request.get("/api/notebook")).json()).entries).toEqual([]);
+  expect((await (await page.request.get("/api/review")).json()).submissions).toEqual([]);
+  const oldSession = await browser.newContext();
+  try {
+    await oldSession.addCookies(previousCookies);
+    expect((await (await oldSession.request.get(new URL("/api/review", page.url()).href)).json()).submissions).toHaveLength(1);
+    expect((await (await oldSession.request.get(new URL("/api/notebook", page.url()).href)).json()).entries).toHaveLength(2);
+  } finally { await oldSession.close(); }
 });

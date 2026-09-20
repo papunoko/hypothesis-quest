@@ -12,7 +12,7 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
-    { name: "ui", testMatch: ["**/quest.spec.ts", "**/lru.spec.ts", "**/questions.spec.ts", "**/review.spec.ts", "**/support.spec.ts"] },
+    { name: "ui", testMatch: ["**/quest.spec.ts", "**/lru.spec.ts", "**/questions.spec.ts", "**/review.spec.ts", "**/support.spec.ts", "**/session.spec.ts"] },
     { name: "live", testMatch: "**/*.live.spec.ts" },
   ],
   webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : {

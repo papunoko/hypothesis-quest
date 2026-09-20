@@ -4,7 +4,7 @@ import { DECISIONS, type ReviewDecision, type Submission } from "@/lib/review";
 import { LRU_CASES, LRU_HOLDOUT, LRU_LABEL, type LruOutcome } from "@/subject/lru";
 import { NarrationView } from "./narration-view";
 
-function Holdout() {
+function Holdout({ onReveal }: { onReveal: () => void }) {
   const [prediction, setPrediction] = useState<LruOutcome | null>(null);
   return <section className="holdout" aria-label="未提示事例の予想">
     <h3>{LRU_HOLDOUT.title}</h3>
@@ -12,7 +12,7 @@ function Holdout() {
     <p><code>{LRU_HOLDOUT.calls.join(" → ")}</code></p>
     <p className="small-note">予想を選んでから実測を見ます。クリア判定は変わりません。予想は保存・送信しません。</p>
     <div className="secondary-actions" role="group" aria-label="2回目の結果を予想する">
-      {(["remembered", "computed", "error"] as const).map((outcome) => <button key={outcome} className="ghost" disabled={prediction !== null} aria-pressed={prediction === outcome} onClick={() => setPrediction(outcome)}>{LRU_LABEL[outcome]}</button>)}
+      {(["remembered", "computed", "error"] as const).map((outcome) => <button key={outcome} className="ghost" disabled={prediction !== null} aria-pressed={prediction === outcome} onClick={() => { setPrediction(outcome); onReveal(); }}>{LRU_LABEL[outcome]}</button>)}
     </div>
     {prediction !== null && <div role="status">
       <p>あなたの予想：{LRU_LABEL[prediction]}</p>
@@ -24,7 +24,7 @@ function Holdout() {
   </section>;
 }
 
-export function ReviewPanel({ initialHypothesis, initialReview, onBusy }: { initialHypothesis: string; initialReview: string; onBusy: (busy: boolean) => void }) {
+export function ReviewPanel({ initialHypothesis, initialReview, onBusy, onHoldoutSeen }: { initialHypothesis: string; initialReview: string; onBusy: (busy: boolean) => void; onHoldoutSeen: () => void }) {
   const [hypothesis, setHypothesis] = useState(initialHypothesis);
   const [review, setReview] = useState(initialReview);
   const [decision, setDecision] = useState<ReviewDecision>("hold");
@@ -68,7 +68,7 @@ export function ReviewPanel({ initialHypothesis, initialReview, onBusy }: { init
     {error && <p role="alert" className="err">{error}</p>}
     {receipt && <section className="review-receipt" aria-label="提出への回答" role="status"><h3>レビューを受け付けました</h3><p>{DECISIONS[receipt.decision]} · {new Date(receipt.at).toLocaleString("ja-JP")}</p><blockquote>{receipt.hypothesis}</blockquote><p>説明が通るテスト：<strong>{receipt.stage}</strong></p><p>{receipt.cleared ? "用意した7事例では、読み取った説明と実測が一致しました。確認範囲はこの7つだけです。" : receipt.reading ? "食い違い、または読み取りが確定していない事例が残っています。" : "読み取りができず、照合は未確定です。"}</p><p>{receipt.unasked ? "まだ質問していない論点があります。" : "用意した質問の論点には触れました。"}理解度やマージ判断の採点ではありません。</p><NarrationView narration={receipt.narration} />
       <details><summary>この提出の照合と根拠を見る</summary><p className="small-note">予想はJevの読み取りをコードで適用したもの。実測と区別して見てください。</p><div className="review-results">{receipt.results.map((result) => { const card = LRU_CASES.find((c) => c.id === result.id)!; return <div key={result.id}><strong>{result.id} · {result.verdict === "match" ? "一致" : result.verdict === "mismatch" ? "食い違い" : "読み取り未確定"}</strong><code>{card.calls.join(" → ")}</code><span>予想：{LRU_LABEL[result.prediction]} / 実測：{LRU_LABEL[card.actual]}</span></div>; })}</div><p>提出コメント：{receipt.review}</p></details>
-      {receipt.cleared && <Holdout key={receipt.id} />}
+      {receipt.cleared && <Holdout key={receipt.id} onReveal={onHoldoutSeen} />}
     </section>}
     {submissions.length > 0 && <details className="submission-history"><summary>保存した提出履歴 · {submissions.length}件</summary>{submissions.map((submission) => <div key={submission.id}><p>{submission.hypothesis}</p><button className="ghost" disabled={busy} onClick={() => setReceipt(submission)}>{new Date(submission.at).toLocaleTimeString("ja-JP")} の回答を見直す</button></div>)}</details>}
   </section>;

@@ -60,7 +60,7 @@ if (key) {
   } catch (error) { checks.push({ id: "paradox-provokes-questions", ok: false, detail: `LLM 失敗: ${(error as Error).message}` }); }
 } else checks.push({ id: "paradox-provokes-questions", ok: true, detail: "省略（OLLAMA_API_KEY なし）" });
 
-const date = new Date().toISOString().slice(0, 10);
+const date = new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
 const md = [`# 題材検査 ${spec.subject} ${date}`, "", `矛盾:`, ...spec.paradox.map((p) => `> ${p}`), "", "| 検査 | 結果 | 詳細 |", "| --- | --- | --- |",
   ...checks.map((c) => `| ${c.id} | ${c.ok ? "○" : "✗"} | ${c.detail} |`), ""];
 mkdirSync("docs/eval", { recursive: true });

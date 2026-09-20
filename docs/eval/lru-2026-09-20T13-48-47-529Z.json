@@ -1,0 +1,230 @@
+{
+  "passed": 11,
+  "total": 14,
+  "records": [
+    {
+      "hypothesis": "同じ引数で呼べば記憶を返す",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.96,
+        "form": 0.08,
+        "order": 0.05,
+        "types": 0.5,
+        "singleFast": 0.16,
+        "typed": 0.03
+      },
+      "next": "L2",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 1053
+    },
+    {
+      "hypothesis": "引数の値が等しければ以前の計算結果を使う",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.98,
+        "form": 0.06,
+        "order": 0.04,
+        "types": 0.24,
+        "singleFast": 0.17,
+        "typed": 0.03
+      },
+      "next": "L2",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 418
+    },
+    {
+      "hypothesis": "Equal argument values reuse the cached result.",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.98,
+        "form": 0.06,
+        "order": 0.04,
+        "types": 0.31,
+        "singleFast": 0.11,
+        "typed": 0.03
+      },
+      "next": "L2",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 269
+    },
+    {
+      "hypothesis": "引数の書き方まで同じなら計算しない",
+      "expected": "L4",
+      "reading": {
+        "rule": 0.94,
+        "form": 0.84,
+        "order": 0.17,
+        "types": 0.37,
+        "singleFast": 0.18,
+        "typed": 0.05
+      },
+      "next": "L4",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 309
+    },
+    {
+      "hypothesis": "位置引数かキーワード引数か、省略するかどうかも同じなら記憶を返す",
+      "expected": "L4",
+      "reading": {
+        "rule": 0.96,
+        "form": 0.91,
+        "order": 0.09,
+        "types": 0.4,
+        "singleFast": 0.17,
+        "typed": 0.03
+      },
+      "next": "L4",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 303
+    },
+    {
+      "hypothesis": "引数の書き方（位置・キーワード・順番）まで同じなら計算しない",
+      "expected": "L5",
+      "reading": {
+        "rule": 0.95,
+        "form": 0.92,
+        "order": 0.89,
+        "types": 0.16,
+        "singleFast": 0.11,
+        "typed": 0.03
+      },
+      "next": "L5",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 329
+    },
+    {
+      "hypothesis": "値・引数の渡し方・キーワードの順番が同じなら記憶を使う",
+      "expected": "L5",
+      "reading": {
+        "rule": 0.95,
+        "form": 0.7,
+        "order": 0.92,
+        "types": 0.45,
+        "singleFast": 0.15,
+        "typed": 0.05
+      },
+      "next": "L2",
+      "verdict": "undetermined",
+      "pass": false,
+      "ms": 354
+    },
+    {
+      "hypothesis": "引数の値と書き方と順番と型まで同じなら記憶を返す",
+      "expected": "L6",
+      "reading": {
+        "rule": 0.96,
+        "form": 0.9,
+        "order": 0.88,
+        "types": 0.95,
+        "singleFast": 0.16,
+        "typed": 0.13
+      },
+      "next": "L6",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 316
+    },
+    {
+      "hypothesis": "値が等しくても型が違えば別の呼び出しとして計算する",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.96,
+        "form": 0.09,
+        "order": 0.03,
+        "types": 0.91,
+        "singleFast": 0.24,
+        "typed": 0.17
+      },
+      "next": "L2",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 478
+    },
+    {
+      "hypothesis": "キーワード引数の順番が違っても同じ呼び出しとみなす",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.96,
+        "form": 0.56,
+        "order": 0.04,
+        "types": 0.28,
+        "singleFast": 0.08,
+        "typed": 0.02
+      },
+      "next": "L4",
+      "verdict": "mismatch",
+      "pass": false,
+      "ms": 429
+    },
+    {
+      "hypothesis": "引数の並びをそのまま鍵にする。ただし int か str が1個だけなら、その値自体が鍵になる",
+      "expected": "L7",
+      "reading": {
+        "rule": 0.97,
+        "form": 0.88,
+        "order": 0.9,
+        "types": 0.53,
+        "singleFast": 0.91,
+        "typed": 0.05
+      },
+      "next": "L7",
+      "verdict": "mismatch",
+      "pass": true,
+      "ms": 220
+    },
+    {
+      "hypothesis": "引数の書き方と順番を区別する。1と1.0は引数が1個なら別、2個なら同じ。typed=Trueでは型も区別する",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.94,
+        "form": 0.88,
+        "order": 0.61,
+        "types": 0.51,
+        "singleFast": 0.82,
+        "typed": 0.98
+      },
+      "next": "L4",
+      "verdict": "undetermined",
+      "pass": false,
+      "ms": 210
+    },
+    {
+      "hypothesis": "同じ商品は重複して登録しない",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.04,
+        "form": 0.03,
+        "order": 0.02,
+        "types": 0.22,
+        "singleFast": 0.06,
+        "typed": 0.02
+      },
+      "next": "L2",
+      "verdict": "undetermined",
+      "pass": true,
+      "ms": 258
+    },
+    {
+      "hypothesis": "よくわからない",
+      "expected": "L2",
+      "reading": {
+        "rule": 0.01,
+        "form": 0.02,
+        "order": 0.02,
+        "types": 0.36,
+        "singleFast": 0.04,
+        "typed": 0.03
+      },
+      "next": "L2",
+      "verdict": "undetermined",
+      "pass": true,
+      "ms": 891
+    }
+  ]
+}

@@ -1,5 +1,23 @@
 import { test, expect } from "@playwright/test";
 
+test("実Jevで真相を提出するとクリアし、未提示事例に進める", async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto("/");
+  await page.getByRole("button", { name: "このイシューを確かめる →" }).click();
+  await page.getByRole("button", { name: "観察を区切ってレビューを書く" }).click();
+  await page.getByLabel("最後の仮説（現状の実装をどう説明する？）").fill("引数の並びをそのまま鍵にする。ただし int か str が1個だけなら、その値自体が鍵になる。typed=Trueでは型も区別する");
+  await page.getByLabel("あなたのレビューコメント（下書き・外部には投稿されません）").fill("現在の7事例を確認しました。変更後の性能は追加検証が必要です。");
+  await page.getByRole("button", { name: "レビューを提出して回答を受け取る" }).click();
+  const holdout = page.getByRole("region", { name: "未提示事例の予想" });
+  await expect(holdout).toBeVisible({ timeout: 40000 });
+  await holdout.getByRole("button", { name: "記憶した結果を返す", exact: true }).click();
+  await expect(holdout.getByRole("status")).toContainText("予想と実測が一致しました");
+  const saved = (await (await page.request.get("/api/review")).json()).submissions;
+  expect(saved).toHaveLength(1);
+  expect(saved[0].cleared).toBe(true);
+  expect(saved[0].results).toHaveLength(7);
+});
+
 test("実LLMの質問回答・ヒント・最終提出の解説を検問し保存復元する", async ({ page, browser }, info) => {
   test.setTimeout(90000);
   await page.goto("/"); await page.getByRole("button", { name: "このイシューを確かめる →" }).click();

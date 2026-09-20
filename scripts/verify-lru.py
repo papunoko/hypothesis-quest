@@ -12,6 +12,7 @@ cases = [
     ("L6", [((1, 2), {}), ((1.0, 2), {})], False, "remembered"),
     ("L7", [((1, 2), {}), ((1.0, 2), {})], True, "computed"),
     ("L8", [(([1],), {})], False, "error"),
+    ("H1", [((1.0,), {}), ((True,), {})], False, "remembered"),
 ]
 
 results = []

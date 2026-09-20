@@ -1,0 +1,335 @@
+{
+ "date": "2026-09-20T13-46-11-566Z",
+ "summaries": [
+  {
+   "name": "早漏者",
+   "strategy": "最初の一文をそのまま提出する",
+   "moves": 1,
+   "questions": 0,
+   "hypotheses": 1,
+   "coreMove": null,
+   "shown": 2,
+   "matches": 2,
+   "stage": "まだ",
+   "cleared": false,
+   "ms": 3341,
+   "log": [
+    {
+     "move": 1,
+     "kind": "assertion",
+     "text": "同じ引数で呼べば記憶を返す",
+     "ms": 3341,
+     "named": [
+      "rule"
+     ],
+     "next": "L2",
+     "verdict": "mismatch",
+     "matches": 2,
+     "pair": [
+      "L5:mismatch",
+      "L6:match"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "詰め込み屋",
+   "strategy": "観察せず、名前を知っている条件を全部盛る",
+   "moves": 3,
+   "questions": 0,
+   "hypotheses": 3,
+   "coreMove": 3,
+   "shown": 4,
+   "matches": 7,
+   "stage": "全部",
+   "cleared": true,
+   "ms": 3424,
+   "log": [
+    {
+     "move": 1,
+     "kind": "assertion",
+     "text": "引数の値と書き方と順番と型まで同じなら記憶を返す",
+     "ms": 1029,
+     "named": [
+      "rule",
+      "form",
+      "order",
+      "types"
+     ],
+     "next": "L6",
+     "verdict": "mismatch",
+     "matches": 6,
+     "pair": [
+      "L5:match",
+      "L6:mismatch"
+     ]
+    },
+    {
+     "move": 2,
+     "kind": "assertion",
+     "text": "引数の値と書き方と順番と型まで同じなら記憶を返す。typed=Trueなら型も区別する",
+     "ms": 1768,
+     "named": [
+      "rule",
+      "form",
+      "order",
+      "typed"
+     ],
+     "next": "L5",
+     "verdict": "undetermined",
+     "matches": 5,
+     "pair": [
+      "L5:undetermined",
+      "L6:undetermined"
+     ]
+    },
+    {
+     "move": 3,
+     "kind": "assertion",
+     "text": "引数の値と書き方と順番まで同じなら記憶を返す。ただしintかstrが1個だけなら値そのものを鍵にする。typed=Trueなら型も区別する",
+     "ms": 627,
+     "named": [
+      "rule",
+      "form",
+      "order",
+      "singleFast",
+      "typed"
+     ],
+     "next": "L2",
+     "verdict": "match",
+     "matches": 7,
+     "pair": [
+      "L5:match",
+      "L6:match"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "列挙者",
+   "strategy": "全話題を質問してから、答えを繋いだ文を提出する",
+   "moves": 6,
+   "questions": 5,
+   "hypotheses": 1,
+   "coreMove": 3,
+   "shown": 7,
+   "matches": 6,
+   "stage": "あと少し",
+   "cleared": false,
+   "ms": 1666,
+   "log": [
+    {
+     "move": 1,
+     "kind": "question",
+     "text": "値が同じでも、省略・位置・名前の書き方を変えると記憶の使い方は変わる？",
+     "ms": 319,
+     "topic": "form",
+     "answer": "はい",
+     "cases": [
+      "L2",
+      "L3"
+     ]
+    },
+    {
+     "move": 2,
+     "kind": "question",
+     "text": "キーワード引数の順番だけを変えると記憶の使い方は変わる？",
+     "ms": 320,
+     "topic": "order",
+     "answer": "はい",
+     "cases": [
+      "L4"
+     ]
+    },
+    {
+     "move": 3,
+     "kind": "question",
+     "text": "typed=Falseで、等しい値の型を変えると毎回別扱いになる？",
+     "ms": 282,
+     "topic": "types",
+     "answer": "場合による",
+     "cases": [
+      "L5",
+      "L6"
+     ]
+    },
+    {
+     "move": 4,
+     "kind": "question",
+     "text": "型を変えたときの結果は、引数が1個か2個かで変わる？",
+     "ms": 250,
+     "topic": "arity",
+     "answer": "はい",
+     "cases": [
+      "L5",
+      "L6"
+     ]
+    },
+    {
+     "move": 5,
+     "kind": "question",
+     "text": "同じ呼び出しの組でも、typedの設定を変えると結果は変わる？",
+     "ms": 264,
+     "topic": "typed",
+     "answer": "はい",
+     "cases": [
+      "L6",
+      "L7"
+     ]
+    },
+    {
+     "move": 6,
+     "kind": "assertion",
+     "text": "書き方と順番を区別する。1と1.0は引数が1個なら別、2個なら同じ。typed=Trueでは型も区別する",
+     "ms": 231,
+     "named": [
+      "rule",
+      "form",
+      "singleFast",
+      "typed"
+     ],
+     "matches": 6,
+     "pair": [
+      "L5:match",
+      "L6:match"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "理解者",
+   "strategy": "journey.md §4 の4手＋typed を足す",
+   "moves": 5,
+   "questions": 0,
+   "hypotheses": 5,
+   "coreMove": 4,
+   "shown": 6,
+   "matches": 7,
+   "stage": "全部",
+   "cleared": true,
+   "ms": 1521,
+   "log": [
+    {
+     "move": 1,
+     "kind": "assertion",
+     "text": "同じ引数で呼べば記憶を返す",
+     "ms": 260,
+     "named": [
+      "rule"
+     ],
+     "next": "L2",
+     "verdict": "mismatch",
+     "matches": 2,
+     "pair": [
+      "L5:mismatch",
+      "L6:match"
+     ]
+    },
+    {
+     "move": 2,
+     "kind": "assertion",
+     "text": "引数の書き方まで同じなら計算しない",
+     "ms": 208,
+     "named": [
+      "rule",
+      "form"
+     ],
+     "next": "L4",
+     "verdict": "mismatch",
+     "matches": 4,
+     "pair": [
+      "L5:mismatch",
+      "L6:match"
+     ]
+    },
+    {
+     "move": 3,
+     "kind": "assertion",
+     "text": "同じ引数で呼べば記憶を返す。ただし型が違えば別",
+     "ms": 224,
+     "named": [
+      "rule",
+      "types"
+     ],
+     "next": "L3",
+     "verdict": "mismatch",
+     "matches": 3,
+     "pair": [
+      "L5:match",
+      "L6:mismatch"
+     ]
+    },
+    {
+     "move": 4,
+     "kind": "assertion",
+     "text": "引数の並びをそのまま鍵にする。ただし int か str が1個だけなら値自体が鍵",
+     "ms": 210,
+     "named": [
+      "rule",
+      "form",
+      "order",
+      "singleFast"
+     ],
+     "next": "L7",
+     "verdict": "mismatch",
+     "matches": 6,
+     "pair": [
+      "L5:match",
+      "L6:match"
+     ]
+    },
+    {
+     "move": 5,
+     "kind": "assertion",
+     "text": "引数の並びをそのまま鍵にする。ただし int か str が1個だけなら値自体が鍵。typed=Trueでは型も区別する",
+     "ms": 619,
+     "named": [
+      "rule",
+      "form",
+      "order",
+      "singleFast",
+      "typed"
+     ],
+     "next": "L5",
+     "verdict": "match",
+     "matches": 7,
+     "pair": [
+      "L5:match",
+      "L6:match"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "報告者",
+   "strategy": "bpo-39554 の報告者の期待をそのまま書く",
+   "moves": 1,
+   "questions": 0,
+   "hypotheses": 1,
+   "coreMove": null,
+   "shown": 2,
+   "matches": 2,
+   "stage": "まだ",
+   "cleared": false,
+   "ms": 340,
+   "log": [
+    {
+     "move": 1,
+     "kind": "assertion",
+     "text": "typed=Falseなら1と1.0は同じ呼び出しとして記憶を返す",
+     "ms": 340,
+     "named": [
+      "rule"
+     ],
+     "next": "L2",
+     "verdict": "mismatch",
+     "matches": 2,
+     "pair": [
+      "L5:mismatch",
+      "L6:match"
+     ]
+    }
+   ]
+  }
+ ]
+}

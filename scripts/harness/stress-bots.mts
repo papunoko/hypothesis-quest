@@ -98,7 +98,8 @@ verdicts.push(pair.some((p) => p.endsWith("mismatch")) && pair.some((p) => p.end
 verdicts.push(understander.cleared ? `○ 理解者は ${understander.moves} 手でクリア。核心到達は手 ${understander.coreMove}。` : `✗ 理解者（台本どおり）がクリアしない（一致 ${understander.matches}/7）。台本か読み取りが壊れている。`);
 verdicts.push(rusher.cleared ? `✗ 早漏者が1手でクリア。` : `○ 早漏者は1手ではクリアしない（一致 ${rusher.matches}/7、段階: ${rusher.stage}）。`);
 
-const date = new Date().toISOString().slice(0, 10);
+// Keep each measurement; rerunning on the same day must not erase the failure trace.
+const date = new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
 const md = [`# 固定戦略ボット ${date}`, "", "`npm run harness:stress`（実 Jev、LLM なし）。判定の規則はスクリプト冒頭。", "",
   "| ボット | 戦略 | 手数 | 質問 | 仮説 | 核心到達手 | 見た事例 | 一致 | 段階 | クリア | Jev ms |", "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
   ...summaries.map((s) => `| ${s.name} | ${s.strategy} | ${s.moves} | ${s.questions} | ${s.hypotheses} | ${s.coreMove ?? "—"} | ${s.shown} | ${s.matches}/7 | ${s.stage} | ${s.cleared ? "✓" : "—"} | ${s.ms} |`),

@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
-import { LRU_CASES, LRU_EXTRA } from "../src/subject/lru.ts";
+import { LRU_CASES, LRU_EXTRA, LRU_HOLDOUT } from "../src/subject/lru.ts";
 
 const path = fileURLToPath(new URL("./verify-lru.py", import.meta.url));
 const windows = process.platform === "win32";
@@ -11,7 +11,8 @@ if (run.error) throw run.error;
 if (run.status !== 0) throw new Error(run.stderr || `Python exited ${run.status}`);
 const observed = JSON.parse(run.stdout);
 assert.equal(observed.python, "3.12.3", "Card observations are pinned to CPython 3.12.3");
-for (const card of [...LRU_CASES, LRU_EXTRA]) {
+for (const card of [...LRU_CASES, LRU_EXTRA, LRU_HOLDOUT]) {
   assert.equal(observed.results.find((r: { id: string }) => r.id === card.id)?.outcome, card.actual, card.id);
 }
-console.log(`CPython ${observed.python}: all 8 UI card outcomes match execution.`);
+assert.equal(observed.results.find((r: { id: string }) => r.id === LRU_HOLDOUT.id)?.bodyCalls, 1);
+console.log(`CPython ${observed.python}: all 9 outcomes (7 cases + L8 + holdout) match execution.`);

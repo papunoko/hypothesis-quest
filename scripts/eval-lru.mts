@@ -1,6 +1,7 @@
 import { LRU_AXES, LRU_CASES } from "../src/subject/lru.ts";
 import { readNoul } from "../src/lib/noul.ts";
 import { judgeLru, nextLru } from "../src/lib/lru-select.ts";
+import { mkdirSync, writeFileSync } from "node:fs";
 
 const examples = [
   ["同じ引数で呼べば記憶を返す", "L2"],
@@ -20,6 +21,7 @@ const examples = [
 ];
 // L1 is shown as the initial baseline. Matching rules fall through to first unseen L2.
 let passed = 0;
+const records = [];
 for (const [hypothesis, expected] of examples) {
   const start = performance.now();
   const reading = await readNoul(hypothesis, LRU_AXES);
@@ -27,7 +29,12 @@ for (const [hypothesis, expected] of examples) {
   const next = nextLru(results, new Set(["L1"]));
   const pass = next?.id === expected;
   passed += Number(pass);
-  console.log(JSON.stringify({ hypothesis, reading, next: next?.id, verdict: next?.verdict, pass, ms: Math.round(performance.now() - start) }));
+  const record = { hypothesis, expected, reading, next: next?.id, verdict: next?.verdict, pass, ms: Math.round(performance.now() - start) };
+  records.push(record);
+  console.log(JSON.stringify(record));
 }
 console.log(`${passed}/${examples.length} expected selections`);
+const stamp = new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
+mkdirSync("docs/eval", { recursive: true });
+writeFileSync(`docs/eval/lru-${stamp}.json`, JSON.stringify({ passed, total: examples.length, records }, null, 2));
 if (passed !== examples.length) process.exitCode = 1;

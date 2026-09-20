@@ -13,7 +13,7 @@ test("仮説を修正してC3からC4へ進み、履歴を残す", async ({ page
     const { next, reason } = pickNext(results, new Set(shown));
     await route.fulfill({ json: { reading, results, next: next?.id ?? null, reason } });
   });
-  await page.goto("/");
+  await page.goto("/orders");
   await expect(page.getByRole("button", { name: "この仮説で試す", exact: true })).toBeDisabled();
   await page.getByRole("textbox").fill("同じ商品は重複して登録しない");
   await page.getByRole("button", { name: "この仮説で試す", exact: true }).click();
@@ -35,7 +35,7 @@ test("弱い読み取りを食い違いと断定しない", async ({ page }) => 
     reading: null, next: "C3", reason: "undetermined",
     results: [{ id: "C3", prediction: "same", confidence: 0, verdict: "undetermined" }],
   } }));
-  await page.goto("/");
+  await page.goto("/orders");
   await page.getByRole("textbox").fill("仮説");
   await page.getByRole("button", { name: "この仮説で試す", exact: true }).click();
   await expect(page.getByText("解釈の確認:", { exact: false })).toBeVisible();
@@ -53,7 +53,7 @@ test("全事例を表示しても全て説明できたと断定せず、再開�
       results: CASES.map((c) => ({ id: c.id, prediction: "same", confidence: 0.9, verdict: "mismatch" })),
     } });
   });
-  await page.goto("/");
+  await page.goto("/orders");
   await page.getByRole("textbox").fill("間違いの残る仮説");
   for (const c of CASES) {
     await page.getByRole("button", { name: "この仮説で試す", exact: true }).click();
@@ -72,7 +72,7 @@ test("全事例を表示しても全て説明できたと断定せず、再開�
 
 test("API失敗時にも6事例の実結果を見て終了できる", async ({ page }) => {
   await page.route("**/api/predict", (route) => route.fulfill({ status: 502, json: { error: "test unavailable" } }));
-  await page.goto("/");
+  await page.goto("/orders");
   await page.getByRole("textbox").fill("仮説");
   for (const c of CASES) {
     await page.getByRole("button", { name: "この仮説で試す", exact: true }).click();

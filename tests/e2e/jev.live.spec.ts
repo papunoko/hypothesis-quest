@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 
 // 明示的に npm run test:e2e:live を実行したときだけ、実際のJev APIを呼ぶ。
 test("実Jevで商品→C3、依頼ID→C4に分岐する", async ({ page }, info) => {
-  await page.goto("/");
+  await page.goto("/orders");
   for (const [hypothesis, title] of [
     ["同じ商品は重複して登録しない", "意図して2件目を注文"],
     ["同じ依頼IDなら、登録は1件のまま", "同じ依頼IDで中身が違う"],

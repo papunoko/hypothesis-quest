@@ -3,11 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3002",
     "build": "next build",
     "start": "next start",
     "test": "node --test src/subject/*.test.ts src/lib/*.test.ts",
     "eval:jev": "node --env-file=.env.local scripts/eval-jev.mts",
+    "eval:lru": "node --env-file=.env.local scripts/eval-lru.mts",
+    "eval:questions": "node --env-file=.env.local scripts/eval-questions.mts",
+    "eval:narration": "node --env-file=.env.local scripts/eval-narration.mts",
+    "verify:lru": "node scripts/verify-lru.mts",
     "test:e2e": "playwright test --project=ui",
     "test:e2e:live": "playwright test --project=live"
   },

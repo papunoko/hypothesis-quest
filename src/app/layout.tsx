@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "仮説クエスト",
-  description: "AIが書いた機能について仮説を書き、その説明では扱えない事例を見つける",
+  description: "CPythonの実イシューを背景に、仮説と実測事例を比べてPRレビューを書く小さなコード探索",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

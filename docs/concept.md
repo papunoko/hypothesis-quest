@@ -320,4 +320,4 @@ question (Choice): 仮説を唯一のルールとして適用したとき、最�
 
 ## 13. 公開構成
 
-Cloudflare Workers + OpenNext + D1で `ebiharadev.org` に公開中。秘密値はWorkers Secrets（ローカルは `.dev.vars`）に置き、`.env*` には置かない。Wranglerを使う。期限は2026-10-01 00:00 JST、期限後はWorkerで410を返す。今回の品質修正はまだ本番に反映していない。公開設定・撤去の注意は [deployment.md](deployment.md) を正とする。
+Cloudflare Workers + OpenNext + D1で `ebiharadev.org` に公開中。秘密値はWorkers Secrets（ローカルは `.dev.vars`）に置き、`.env*` には置かない。Wranglerを使う。期限は2026-10-01 00:00 JST、期限後はWorkerで410を返す。9/21最終ラウンドまでの品質修正は `56df141` / Worker `fd3a9aff` で本番へ反映済み。公開設定・撤去の注意は [deployment.md](deployment.md) を正とする。

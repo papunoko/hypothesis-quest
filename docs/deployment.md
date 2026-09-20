@@ -1,15 +1,15 @@
 # Cloudflare Workers / ebiharadev.org
 
-2026-09-20: **https://ebiharadev.org で公開済み**。Next.js + OpenNext + Workers + D1。既存DNSを維持してWorker Routeを追加。
+2026-09-21 01:08 JST 更新: **https://ebiharadev.org で公開済み**。Next.js + OpenNext + Workers + D1。既存DNS・Worker Routeを維持。
 
 - Worker: `hypothesis-quest`
 - D1: `hypothesis-quest` / `37a3842d-0f56-4973-8a56-65e2d61c4bfb`
-- 公開バージョン: `1027fad9-af84-4f0e-a956-cb42e1b285a6`
+- 公開バージョン: `fd3a9aff-4c7a-47e5-9ac6-46fad55f0cb4`（100%配信、実装コミット `56df141`）
 - 期限: **2026-10-01 00:00 JST**（9月30日いっぱい）。本番bindingも確認済み。
 
-2026-09-20 夜の品質修正（F-01/F-02/F-03/H-08）は**ローカルのみ、未デプロイ**。Workerビルド・ローカルWorkerのPlaywright18件（実Jev/LLM5件を含む）通過。本番バージョン・期限・Route・Secretsに変更なし。
+2026-09-20 夜の品質修正（F-01/F-02/F-03/H-08）と、9/21の試遊修正（F-07/F-11〜17、F-10の既知の内部名・照合との不整合対策）を**公開済み**。前の公開版は `1027fad9-af84-4f0e-a956-cb42e1b285a6`。期限・Route・Secrets・D1接続先は変更していない。
 
-2026-09-21の試遊修正（F-11〜F-16）も**未デプロイ**。核心度表示のNoulを既存Jevリクエストに1問追加（回数は同じ、トークンは増える）。`POST /api/session` はアプリのセッションCookieのみ更新し、D1の削除やmigrationはしない。同一OriginのPOST限定、既存のその他POST API制限（20回/分）と公開期限の対象。最終のローカル検証は [試遊記録](eval/journey-check-2026-09-21-support-ux.md) を参照。
+核心度表示のNoulを既存Jevリクエストに1問追加（回数は同じ、トークンは増える）。`POST /api/session` はアプリのセッションCookieのみ更新し、D1の削除やmigrationはしない。同一OriginのPOST限定、既存のその他POST API制限（20回/分）と公開期限の対象。解説の検問数・閾値は変更なし。既存の保存済み生成文は書き換えない。検証は [前ラウンド](eval/journey-check-2026-09-21-support-ux.md)・[最終ラウンド](eval/journey-check-2026-09-21-final-round.md)。
 
 ## 構成
 
@@ -82,6 +82,10 @@ npm run deploy
 CIでは `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` を登録。権限は対象Workers/D1/zoneに必要なものに限定する。AIキーはビルド時の.envではなくWorker Secretsへ。
 
 ## 検証
+
+2026-09-21: ローカル単体40/40、TypeScript、Workerビルド、Playwright30/30（UI25＋実API5）。最後の通常回答補強後に再ビルド・実API5件を再確認。`npm run deploy` は本番migrationなしで完了。**本番7/7**（実Jev/LLM5＋セッション画面2、2回に分けて46.6秒＋18.6秒）。質問→ヒント→提出→再読込・重複送信・別セッションへの非公開・提出後の再質問・Cookie切替・旧D1データ保持を確認。セッション失敗ケースは応答を固定して検証。
+
+ブラウザでも公開版の「型は関係ある？」→L5/L6→実生成回答を目視した。通常回答は事例IDと結果を述べ、引数の個数を名指ししなかった。HTTPSトップと取得した静的JSは200/no-store。Wranglerのversion/deployments読戻しで100%配信・PUBLIC_UNTIL・2つの制限・DB ID・Secrets名・assets.run_worker_firstを確認。期限そのものを動かす本番テストは行わず、終了時410は単体/前回ローカル実測を根拠とする。全ての攻撃や生成文の正しさを保証する検査ではない。
 
 2026-09-20の確認: 単体31件・型チェック・Workerビルド、ローカルWorker UI12件、本番HTTPSの実Jev/LLM4件通過。公開期限後のローカル設定で画面・静的JS・APIすべて410、期限中は200/no-storeを確認した。本番のPUBLIC_UNTIL/Secrets/Route設定も読戻し確認済み。
 

@@ -49,6 +49,13 @@
 
 TypeSafeの手順で一問一判断、既知の形式はコード、意味の検問はNoulを維持。[Noul](https://docs.typesafe.ai/primitives/noul)・[State](https://docs.typesafe.ai/concepts/state)・[API](https://docs.typesafe.ai/api)の通常ページを参照した（index/Markdown URLは取得失敗）。
 
+### コミット・公開後の確認
+
+- 実装 `56df141`、2026-09-21 01:08 JSTにWorker `fd3a9aff-4c7a-47e5-9ac6-46fad55f0cb4` を100%配信。既存apex Route、PUBLIC_UNTIL、レート制限、D1、Secretsを維持。migrationなし。
+- 本番7/7: セッションUI2＋narration live2（46.6秒）、残るJev/題材/質問live3（18.6秒）。新Cookieで空の帳面になることと旧CookieのデータがDBに残ること、提出後の再質問・回答復元・別セッションへの非公開も確認。
+- 内ブラウザでも本番の「型は関係ある？」を送信。01:10:50の回答は「場合によります。L5ではもう一度計算し、L6では記憶した結果を返すという実測結果が出ています。この2つの事例を比較して確認してください。」。個数の着眼点を名指ししない本文を読んだ。公開タブをユーザー向けに保持。
+- HTTPSトップと取得した静的JSは200/no-store。期限binding・assets.run_worker_firstを読戻し。期限設定を変更しての本番試験はしていない。公開記録を別コミットで保存する。
+
 ## 情報不足（記録が無い）
 
 - 因果の鎖「謎→質問→最小対→気づき→一文→レビュー」のうち、入力→実測・提出の操作は観測。**気づき→自分の一文・転移**は既知の正解を使ったため不明。

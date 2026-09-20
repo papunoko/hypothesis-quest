@@ -1,0 +1,60 @@
+# Jev に投げる問いは「1問1判断」でなければならない。
+#
+# この repo で実際に踏んだ失敗（docs/journey.md §1 末尾）: 注文APIの軸は
+# 「〜を再利用の条件として挙げているか。ただし拒否節に出てくるものは数えない」
+# と、概念への言及と役割の判定を1問に抱き合わせていた。Jev は状況文に
+# 引っ張られ、仮説を機械的に読めなかった。題材2の軸は「その主張をしているか」
+# だけにして読めるようになった。
+#
+# 対象: `instructions:` キーを持つオブジェクトリテラル（Noul/Choice の問い1個）。
+# subject は問いのオブジェクト全体（instructions と criteria の両方が要る）。
+# state は bare で足りる（問いの外に証拠はない）。
+
+id: jev-question-single-condition
+languages: [TypeScript, Tsx]
+kind: noul
+subject: node
+state: bare
+# 0.62, 2026-09-20 に fixtures（12問: 欠陥4・clean 8、2パス×2回）で fit。欠陥は
+# 0.66〜0.78、clean は 0.08〜0.44 だが `rule` 軸（「引数やキャッシュに触れ、
+# かつ比較や再利用の仕方を提案しているか」）だけ 0.55〜0.57。「話題と文種の
+# and は1判断」を note に足しても 0.02 しか下がらなかった。残余として記録:
+# この規則の次の誤検出は「topic AND genre」型の問いで出る。余裕は上下とも
+# 0.05 前後しかないので、findings の 0.55〜0.70 帯は人が読む。
+at: 0.62
+severity: warning
+rule:
+  kind: object
+  has:
+    kind: pair
+    has: { field: key, regex: "^instructions$" }
+ask: >-
+  This model question bundles two or more independent judgments into one
+  answer, or makes the answer depend on the role a term plays in the text
+  (for example "counts only when it appears as a condition, not in a
+  rejection clause").
+criteria:
+  "true": >-
+    Answering requires deciding two things that could come out differently
+    (whether X is mentioned AND whether it is mentioned as a condition rather
+    than in some other clause; whether the text is about A AND whether it
+    proposes B), or the criteria carve out a role-based exception that needs a
+    second judgment about where or why the term appears. A reader could answer
+    "yes to one half, no to the other" and not know what to return.
+  "false": >-
+    One proposition, answerable yes/no from the text alone: does the text
+    state, mention, or propose this one thing. The criteria only sharpen that
+    single proposition with examples, synonyms, or what does not count as
+    stating it. A Choice question with several mutually exclusive options is
+    still one judgment (which option), as long as the options do not each
+    require a separate role test.
+note: >-
+  Judge the question as the model would receive it: `instructions` plus the
+  `criteria` branches. Listing what does NOT count (synonyms that are too weak,
+  a bare mention with no rule) is sharpening, not a second judgment. The defect
+  is a second, independent condition on the same term -- typically a clause
+  about where the term appears (a rejection clause, a different sentence) or
+  what it is being used for. A criterion that requires the text to be about
+  a topic AND to be a proposal or rule (rather than a question or a bare
+  mention) is one judgment -- "is this a rule about that topic" -- not two.
+  Ignore the surrounding TypeScript; only the question text matters.

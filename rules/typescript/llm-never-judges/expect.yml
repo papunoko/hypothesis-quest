@@ -1,0 +1,11 @@
+default: clean
+fixtures/narration.ts:
+  - { line: 8, label: clean, window: 1, reason: "transport only: returns the model's text, decides nothing" }
+  - { line: 19, label: clean, window: 1, reason: "generates prose and validates its shape (length, non-empty); shape is not a game outcome" }
+  - { line: 25, label: clean, window: 1, reason: "hard clean: branches on a JUDGMENT model's leak score about the generated text, not on the generated content -- the intended screening design" }
+  - { line: 32, label: clean, window: 1, reason: "hard clean: chooses between generated text and a fixed fallback; presentation, no verdict" }
+  - { line: 40, label: bad, window: 1, reason: "cleared is parsed from the model's PASS/FAIL token" }
+  - { line: 46, label: bad, window: 1, reason: "the next case id is parsed from the model's answer" }
+  - { line: 52, label: bad, window: 1, reason: "prediction comes from the model's remembered/computed answer and is compared with the recorded outcome to make a verdict" }
+  - { line: 59, label: clean, window: 1, reason: "no model involved; counts verdicts computed elsewhere" }
+  - { line: 64, label: clean, window: 1, reason: "hard clean: takes the verdict as INPUT and only asks the model to paraphrase the observation; the verdict is not produced here" }

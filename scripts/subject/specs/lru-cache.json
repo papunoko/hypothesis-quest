@@ -1,0 +1,14 @@
+{
+  "subject": "lru-cache",
+  "doc": "docs/subjects/lru-cache.md",
+  "scope": "typed=False、同じ関数 f(x, y=0)、各行は新しいキャッシュから1回目→2回目を呼ぶ",
+  "paradox": [
+    "f(1) のあとに f(1.0) を呼ぶと、もう一度計算する。",
+    "f(1, 2) のあとに f(1.0, 2) を呼ぶと、記憶した結果を返す。"
+  ],
+  "paradoxCases": ["L5", "L6"],
+  "reporterExpectation": "typed=Falseなら1と1.0は同じ呼び出しとして記憶を返す",
+  "reporterSource": "bpo-39554（2020-02）",
+  "truth": "引数の並びをそのまま鍵にする。ただし int か str が1個だけなら、その値自体が鍵になる。typed=Trueでは型も区別する",
+  "truthCode": "elif len(key) == 1 and type(key[0]) in fasttypes: return key[0]"
+}

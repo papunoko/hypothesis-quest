@@ -1,5 +1,73 @@
 # 引継ぎメモ
 
+## 次にやること — 公開品質の3件（2026-09-20 夜・未着手、方針のみ確定）
+
+ハッカソンは終了。本番は https://ebiharadev.org で公開中（下記「9月末までの本番公開」）。ユーザーの選択で、製品側の残りは次の3件をこの順で進める。**コードはまだ触っていない**（下調べのみ）。製品を変えたら `npm run deploy` は本番を出したセッションの手順（deployment.md）に従うこと。
+
+### 1. F-01 / F-02 — 真相の一文がクリアしない
+
+- 事実: 「引数の並びを鍵にする。ただし int か str が1個だけなら値自体が鍵。typed=Trueでは型も区別する」を Jev が読むと `types` が 0.36〜0.39。`predictLru` は 0.4 未満を false と読むが、判定強度 `|r-0.5|*2` が 0.22〜0.28 で 0.55 未満なので L6 が「読み取り未確定」になり、`reviewCheck` でクリアできない。ボット（理解者 6/7）と `subject:check`（truth-passes-all ✗）が同じ点を指した
+- 方針（コード側、小さい）: `src/lib/lru-select.ts` の `predictLru` で **singleFast ≥ 0.6 かつ types < 0.6 のとき types を false と確定し、`relevant` から外す**。理由: 「1個だけ特例」を述べた仮説は「2個なら 1 と 1.0 は同じ」を含意するので、一般の型条件を述べていないと読んでよい。両方はっきり述べた文（types ≥ 0.6）は従来どおり L6 で食い違う
+- 方針（基準文側、F-02）: `src/subject/lru.ts` `LRU_AXES.types.criteria.false` に「1 と 1.0（int と float）は同じ呼び出しだと明言する、または typed=False なら型は関係ないと言う文は false」を足す。報告者の期待「typed=Falseなら1と1.0は同じ呼び出しとして記憶を返す」が L5/L6 とも undetermined になっている（types が中間帯）
+- 検証: `src/lib/lru-select.test.ts` に「types 0.38 でも singleFast 0.98 なら全7例一致」を足す。`npm run eval:lru`（直近 11/14、下げない）、`npm run harness:stress`（理解者がクリア、報告者が L5/L6 を割る）、`npm run subject:check`（truth-passes-all / expectation-splits-pair が ○）、`npm test`
+
+### 2. F-03 — 相棒の台詞の漏れ（`src/subject/lru.ts`）
+
+- L2「…呼び出し方が違うと、もう一度計算しました」→ 疑問形に。案: 「計算に使う値は同じ。`f(1)` と `f(1, 0)` で違うのは何でしょう？」
+- L4「順番が変わると別扱い。PRの追記が…」→ 案: 「同じ名前、同じ値。それでも別扱いになりました。2つの呼び出しで違うところは1つだけです」
+- L7「設定を変えると、2個の引数でも型を区別します」→ 「2個の引数でも」が L5/L6 の対比を持ち込む。案: 「設定を1つ変えただけで、L6 と結果が変わりました。この設定は、あなたの説明のどこに入りますか？」
+- 台詞の文字列を参照するテストは無い（`src` / `tests` を検索済み。`.companion` は表示クラスだけ）。直したら `npm run lint:jev -- check src/subject/lru.ts` で companion-does-not-leak が消えることを確認し、`docs/eval/jev-lint-<date>.md` に追記
+
+### 3. H-08 — 未提示事例（holdout）で締める
+
+- 事例: **`f(1.0)` のあとに `f(True)` → 記憶を返す**（lru-cache.md §3 補助表で実測済み。`(True,) == (1.0,)` のため）。features は types false / singleFast false なので、真相の仮説は「記憶」と予想し、「型が違えば常に別」の仮説は外す。転移の測定になる
+- データ: `src/subject/lru.ts` に `LRU_HOLDOUT`（id "H1"、calls、actual、observation、evidence）。`scripts/verify-lru.py` の cases に `("H1", [((1.0,), {}), ((True,), {})], False, "remembered")` を足し、`scripts/verify-lru.mts` の照合ループにも含める（結果は実行で得る、の不可侵ルール）
+- UI: `src/app/review-panel.tsx` の receipt で `receipt.cleared` のときだけ「最後にひとつ、見ていない事例」を出す。呼び出しの組 → 記憶 / 計算 / エラー の3ボタン → 押してから実測と observation を表示。クライアント側だけで完結（LRU_CASES と同様に束に入る）。保存はしない。`page.tsx` は他セッションが触るので避ける
+- Playwright: `tests/e2e` の UI 回帰に「クリア後に holdout が出て、予想を押すと実測が出る」を1本
+
+### その他
+
+- docs は 2026-09-20 夜に更新済み: `journey.md`（冒頭注記、§0b 導入案 B、§4/§7 の F-01 注記、§9 に F-01/F-03/H-08/案B、§10 証拠の台帳）、`roadmap.md`（フェーズ R 公開品質、全体像に P/H/R、J/S3 の状態）、`concept.md` §12 末尾の追記（クリア条件は F-01 を直すまで成立していない。旧「12. 公開構成」は「13.」に改番、内容は Tunnel 時代のまま → deployment.md が正）
+- `/statusline` が誤って打たれ、statusline-setup エージェントが起動したが PS1 が無く**何も変更していない**。設定したければ表示内容を指定して再実行
+- 上の3件はすべて未コミット・未デプロイ。ハーネス整備分も未コミット（下記）
+
+## ハーネス整備（2026-09-20）
+
+体験と題材を批判的に測る道具を入れた。全体は [harness.md](harness.md)、タスクは backlog H / F 節。製品コードは触っていない（`package.json` の scripts 追加、`.gitignore` にリントのキャッシュ、`AGENTS.md` にハーネス節のみ）。
+
+- 実体: `scripts/harness/`（固定戦略ボット・帳面レポート・jev-lint ラッパー）、`scripts/subject/`（mine / rank / check / specs）、`rules/`（jev-lint ルール4本＋commit ルールの写し、fixtures と baseline 付き）、`.jev-lint.yaml`、スキル `.claude/skills/{subject-forge,journey-check}` と外部3本（`jev-lint`、`game-design-reality-check`、`stress-testing-game-concepts`。`skills` CLI で `.agents/skills/` に入れ `.claude/skills/` へ symlink、`skills-lock.json` が台帳）
+- 初回結果は `docs/eval/`（stress / notebook / subject-check / jev-lint、すべて 2026-09-20）。**製品側の finding は F-01〜F-05**。要点: 真相の一文が `types` 軸 0.36〜0.39 のせいで L6「解釈の確認」になりクリアしない（ボットと題材検査が同じ点を指した）。相棒の台詞 L4/L7 が仕組みを示唆。体験主張に観測がない節が journey 7・concept 5
+- 未実行: `subject:mine` / `subject:rank` は構文確認のみで実 API では回していない（GitHub 検索の疎通は確認済み）。`subject:check` は lru 固定の結線
+- Windows の注意: jev-lint は必ず `npm run lint:jev -- …` 経由（ラッパーが ast-grep.exe を渡す）。Markdown ルールの expect.yml と `eval --replay` のラベル突き合わせは効かない（harness.md §5）
+- 未コミット。他セッションの Workers 移行差分と混在しているので、切り方は指示を待つ
+
+## 既存サブドメインの一時停止（2026-09-20・完了）
+
+- ユーザー提供のAccess編集用カスタムAPIトークンで停止設定を完了。Wrangler OAuthでは403、`login --scopes-list` にAccess編集scopeがなく、別トークンが必要だった。秘密値はリポジトリに保存していない。チャットに共有されたトークンは作業後にユーザーが失効させること。
+- ユーザー依頼の対象は `amidakuji.ebiharadev.org` と `dev.ebiharadev.org`。仮説クエスト（apex）は停止対象外で、HTTPS 200を再確認。
+- `dev` は停止中のCloudflare Tunnel `colab-ssh` のremote configから `ssh://localhost:22` のhostname ingressを削除済み。version 3を読戻し確認し、ingressは `http_status:404` のみ。DNS・既存Access・WARP設定は保持したため、匿名HTTPSではAccessログイン画面が残るがSSHへの経路は除去済み。
+- **あみだくじはAccess全員拒否で公開停止済み。** アプリ `001678a3-28eb-4c27-b013-c81e55701f8d`（Paused amidakuji - 2026-09-20）、policy `1998e8f9-5a96-4b38-9c00-79222ae316df` はdeny/everyoneのみ。独自ドメイン・production pages.dev・`*.amidakuji.pages.dev` の3宛先を設定し読戻し確認。
+- Playwrightの新規匿名contextで独自ドメイン・pages.dev・既存deployment全3件（ec9c589e/c246cee1/c2db38da）の計5ホストを検証。各 `/`・`/favicon.ico`・`/api/` がAccessへ302、ブラウザもAccessログイン画面へ遷移。作成直後は反映待ちの200があったため再検証した。ソース・Pagesプロジェクト・デプロイ履歴は保持。再公開は明示依頼があるまで行わない。
+
+## 9月末までの本番公開（2026-09-20・最新）
+
+- **https://ebiharadev.org で公開済み**。Worker `hypothesis-quest`、version `1027fad9-af84-4f0e-a956-cb42e1b285a6`。専用D1 `37a3842d-0f56-4973-8a56-65e2d61c4bfb` を作成・migration適用し、Jev/OllamaをSecrets登録済み。旧ローカル入力はアップロードしていない。
+- Custom Domainは既存DNSとの競合100117で失敗したため、既存DNSを削除せず **Worker Route `ebiharadev.org/*`** で公開。以前はCloudflareの初期ページ。workers.dev/preview URLsは無効、Routeのfail-openもfalseを確認。
+- **公開期限は日本時間2026年10月1日0時**（9月30日いっぱい）。`custom-worker.ts` の外側ゲートで期限後は画面・静的ファイル・APIを410にする。`assets.run_worker_first=true`、静的JS/CSSはゲート後ASSETSから配信。no-storeで期限後のキャッシュ配信を防ぐ。期限欠落・不正も閉じる。Worker/DNS/D1/Secretsは自動削除しない。
+- 入力読み取り60回/分、その他POST API20回/分のIP別制限。拠点単位であり厳密な課金上限ではない。超過429、制限機能障害503。匿名公開。期限延長はユーザーの明示依頼が必要。
+- 検証: 単体31件・型チェック・Workerビルド成功。期限後設定のローカルWorkerで画面/実在JS/APIすべて410を確認。期限中WorkerのPlaywright UI12件、本番HTTPSに対する実Jev/LLM4件が通過（質問→ヒント→提出→復元、別セッション分離）。本番bindingの期限・Secrets登録も確認済み。
+- `AGENTS.md` にHANDOFF/関連docs/公開時deployment.md必読を追記。`CLAUDE.md` を新設し `@AGENTS.md` で参照。今後の運用は `docs/deployment.md` を読む。今回までのWorkers関連変更は未コミット。
+
+## Workers構成への移行（2026-09-20・最新）
+
+- 検証: 単体28件、型チェック、OpenNext Workerビルド通過。Workersローカル8787でPlaywright UI12件・実Jev/LLM4件通過。実質問→ヒント→提出→再読込と他セッション非公開を確認。旧ボタン名を使っていたliveテストは現UIへ修正し再実行。成果物1208ファイルの秘密値混入は0件。元のNext dev（3001）でもD1読込200。
+- 公開先設定を `ebiharadev.org` のCloudflare Workersへ変更。OpenNext 1.20.6 / Wrangler 4.135.0。既存Next.js 16.3.5は維持。本番D1作成・Secrets登録・DNS切替・デプロイは未実行。`wrangler.jsonc` のD1 UUIDは仮値で、deployスクリプトは未設定時に停止する。
+- `src/lib/notebook-d1.ts` に非同期D1リポジトリ。APIは保存・読込をawait。リクエストごとのD1 session（first-primary）、ヒントのatomic JSON更新、提出のbatch/重複防止、同時異内容提出の409を追加。SQLiteの本番依存を除去。旧 `data/` は保持・未移行。
+- `.env.local` を `.dev.vars` へ移行（Git対象外）。OpenNextは.envファイルをWorkerへ埋め込むため。`server-env.ts` でbindingから読む。単体テスト・評価スクリプトはprocess.envへfallback。生成・検問のロジック自体は変更していない。
+- `npm run dev` はローカルD1 migration後に3002。`npm run preview` はWorkerビルド後8787。`npm start` はD1 bindingがないので使わない。従来のTunnel手順は `docs/deployment.md` のWorkers手順へ置換。
+- 公開前にCloudflareアカウント・apexの既存DNS・D1 UUID・Secretsと、公開アクセス/レート制限/保持期間を確認する。匿名AI利用に対する制限は未実装。
+- 型はWorkersのbindingだけをimport。Wrangler生成のruntime全体型を混ぜるとNext.js/DOMのRequest.json型と競合するため使用しない。
+
 ## 元フォルダへの統合（2026-09-20）
 
 - 統合後の検証: 単体28/28、TypeScript、元フォルダの3001に対するPlaywright UI 12/12通過。

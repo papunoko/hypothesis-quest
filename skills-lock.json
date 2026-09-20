@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "game-design-reality-check": {
+      "source": "qiuaoru-coder/game-design-agent-skills",
+      "sourceType": "github",
+      "skillPath": "game-design-reality-check/SKILL.md",
+      "computedHash": "8221d8481d83943af9e0c02c1ee02a70d11024b48793073c2937e025c093a1da"
+    },
+    "jev-lint": {
+      "source": "mizchi/jev-lint",
+      "sourceType": "github",
+      "skillPath": "skills/jev-lint/SKILL.md",
+      "computedHash": "ce66fb0129a7f765302082b230b49303b81145d51470718d9ea66630514dbac6"
+    },
+    "stress-testing-game-concepts": {
+      "source": "abagames/agentic-gamedev-skills",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/stress-testing-game-concepts/SKILL.md",
+      "computedHash": "c96131bc1a2969c6eec5c2035aa398d6192dca760f4b0703cc07ddd6132235e2"
+    }
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "schema": "jev-lint-eval-1",
+  "recorded": "2026-09-20T13:11:54.423Z",
+  "model": "jev-1.13.0",
+  "suite": "typescript/jev-question-single-condition",
+  "rules": [
+    {
+      "id": "jev-question-single-condition",
+      "draft": "eaf99b69bfc7",
+      "at": 0.62
+    }
+  ],
+  "cutoffs": {},
+  "passes": [
+    [
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 6,
+        "endLine": 13,
+        "kind": "noul",
+        "value": 0.71,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 14,
+        "endLine": 21,
+        "kind": "noul",
+        "value": 0.75,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 22,
+        "endLine": 29,
+        "kind": "noul",
+        "value": 0.08,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 30,
+        "endLine": 37,
+        "kind": "noul",
+        "value": 0.24,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 41,
+        "endLine": 48,
+        "kind": "noul",
+        "value": 0.51,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 49,
+        "endLine": 56,
+        "kind": "noul",
+        "value": 0.14,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 57,
+        "endLine": 64,
+        "kind": "noul",
+        "value": 0.43,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 65,
+        "endLine": 72,
+        "kind": "noul",
+        "value": 0.77,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 73,
+        "endLine": 80,
+        "kind": "noul",
+        "value": 0.28,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 83,
+        "endLine": 91,
+        "kind": "noul",
+        "value": 0.19,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 93,
+        "endLine": 102,
+        "kind": "noul",
+        "value": 0.63,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 104,
+        "endLine": 111,
+        "kind": "noul",
+        "value": 0.28,
+        "confidence": null
+      }
+    ],
+    [
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 6,
+        "endLine": 13,
+        "kind": "noul",
+        "value": 0.73,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 14,
+        "endLine": 21,
+        "kind": "noul",
+        "value": 0.76,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 22,
+        "endLine": 29,
+        "kind": "noul",
+        "value": 0.08,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 30,
+        "endLine": 37,
+        "kind": "noul",
+        "value": 0.26,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 41,
+        "endLine": 48,
+        "kind": "noul",
+        "value": 0.57,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 49,
+        "endLine": 56,
+        "kind": "noul",
+        "value": 0.14,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 57,
+        "endLine": 64,
+        "kind": "noul",
+        "value": 0.45,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 65,
+        "endLine": 72,
+        "kind": "noul",
+        "value": 0.8,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 73,
+        "endLine": 80,
+        "kind": "noul",
+        "value": 0.27,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 83,
+        "endLine": 91,
+        "kind": "noul",
+        "value": 0.21,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 93,
+        "endLine": 102,
+        "kind": "noul",
+        "value": 0.67,
+        "confidence": null
+      },
+      {
+        "rule": "jev-question-single-condition",
+        "file": "rules\\typescript\\jev-question-single-condition\\fixtures\\questions.ts",
+        "line": 104,
+        "endLine": 111,
+        "kind": "noul",
+        "value": 0.34,
+        "confidence": null
+      }
+    ]
+  ],
+  "spent": {
+    "calls": 2,
+    "inputTokens": 16058,
+    "usd": 0.000674436,
+    "ms": 1065
+  }
+}

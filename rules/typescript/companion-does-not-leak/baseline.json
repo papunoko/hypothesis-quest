@@ -1,0 +1,260 @@
+{
+  "schema": "jev-lint-eval-1",
+  "recorded": "2026-09-20T13:11:06.974Z",
+  "model": "jev-1.13.0",
+  "suite": "typescript/companion-does-not-leak",
+  "rules": [
+    {
+      "id": "companion-does-not-leak",
+      "draft": "6e1fbad975a0",
+      "at": 0.6
+    }
+  ],
+  "cutoffs": {},
+  "passes": [
+    [
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 8,
+        "endLine": 8,
+        "kind": "noul",
+        "value": 0.2,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 13,
+        "endLine": 13,
+        "kind": "noul",
+        "value": 0.7,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 18,
+        "endLine": 18,
+        "kind": "noul",
+        "value": 0.94,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 23,
+        "endLine": 23,
+        "kind": "noul",
+        "value": 0.18,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 28,
+        "endLine": 28,
+        "kind": "noul",
+        "value": 0.9,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 33,
+        "endLine": 33,
+        "kind": "noul",
+        "value": 0.8,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 38,
+        "endLine": 38,
+        "kind": "noul",
+        "value": 0.11,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 39,
+        "endLine": 39,
+        "kind": "noul",
+        "value": 0.32,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 40,
+        "endLine": 40,
+        "kind": "noul",
+        "value": 0.68,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 44,
+        "endLine": 44,
+        "kind": "noul",
+        "value": 0.06,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 45,
+        "endLine": 45,
+        "kind": "noul",
+        "value": 0.13,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 46,
+        "endLine": 46,
+        "kind": "noul",
+        "value": 0.88,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 47,
+        "endLine": 47,
+        "kind": "noul",
+        "value": 0.23,
+        "confidence": null
+      }
+    ],
+    [
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 8,
+        "endLine": 8,
+        "kind": "noul",
+        "value": 0.17,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 13,
+        "endLine": 13,
+        "kind": "noul",
+        "value": 0.69,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 18,
+        "endLine": 18,
+        "kind": "noul",
+        "value": 0.94,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 23,
+        "endLine": 23,
+        "kind": "noul",
+        "value": 0.2,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 28,
+        "endLine": 28,
+        "kind": "noul",
+        "value": 0.92,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 33,
+        "endLine": 33,
+        "kind": "noul",
+        "value": 0.79,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 38,
+        "endLine": 38,
+        "kind": "noul",
+        "value": 0.13,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 39,
+        "endLine": 39,
+        "kind": "noul",
+        "value": 0.34,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 40,
+        "endLine": 40,
+        "kind": "noul",
+        "value": 0.67,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 44,
+        "endLine": 44,
+        "kind": "noul",
+        "value": 0.06,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 45,
+        "endLine": 45,
+        "kind": "noul",
+        "value": 0.13,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 46,
+        "endLine": 46,
+        "kind": "noul",
+        "value": 0.89,
+        "confidence": null
+      },
+      {
+        "rule": "companion-does-not-leak",
+        "file": "rules\\typescript\\companion-does-not-leak\\fixtures\\cases.ts",
+        "line": 47,
+        "endLine": 47,
+        "kind": "noul",
+        "value": 0.22,
+        "confidence": null
+      }
+    ]
+  ],
+  "spent": {
+    "calls": 2,
+    "inputTokens": 16266,
+    "usd": 0.000683172,
+    "ms": 1246
+  }
+}

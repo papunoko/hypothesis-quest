@@ -1,0 +1,10 @@
+default: clean
+fixtures/journey.md:
+  - { line: 1, label: clean, window: 1, reason: "title block, no content" }
+  - { line: 3, label: bad, window: 1, reason: "'プレイヤーは迷わず書き始める' is a behaviour claim with no observation in the section" }
+  - { line: 8, label: clean, window: 1, reason: "measurements about the model, no player claim" }
+  - { line: 17, label: bad, window: 1, reason: "'プレイヤーは薄いバーを見て言い直す' asserted as fact; the latency numbers are about the system, not the player" }
+  - { line: 22, label: bad, window: 1, reason: "'全員が引数の個数に気づき、面白さが最大になる' with nothing behind it" }
+  - { line: 26, label: clean, window: 1, reason: "hard clean: strong behaviour statements, but they are observations from a named session, and the causal guess is marked 仮定" }
+  - { line: 31, label: clean, window: 1, reason: "hard clean: behaviour claims, each labelled 仮定・未観測" }
+  - { line: 36, label: clean, window: 1, reason: "implementation spec, no experience claim" }

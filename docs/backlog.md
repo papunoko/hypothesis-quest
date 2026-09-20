@@ -124,6 +124,31 @@
 - [x] **T-65** `/` を題材2に、`/orders` に開発用ダミーを保持
 - [ ] **T-54'** デモ台本は題材2で組み直す。山場は L5/L6 の逆転
 
+## H — ハーネス（体験と題材を批判的に測る）
+
+2026-09-20 整備。使い方は [harness.md](harness.md)、結果は `docs/eval/`。原則: 測ることはスクリプト、読んで決めることはスキル。
+
+- [x] **H-01** 固定戦略ボット `npm run harness:stress`（早漏者・詰め込み屋・列挙者・理解者・報告者）。実 Jev、LLM なし、docs/eval/stress-*.md
+- [x] **H-02** 帳面レポート `npm run harness:notebook`（D1 ローカル＋旧 SQLite → 核心接近曲線・離脱点）
+- [x] **H-03** 題材検査 `npm run subject:check`（真相が全事例を通る / 報告者の期待が最小対を割る / 矛盾が原因を言わない / 矛盾として読める / 質問が出る）
+- [x] **H-04** 題材候補の収集と順位付け `npm run subject:mine -- --repo owner/name` → `npm run subject:rank -- --in ...`（GitHub の not planned イシュー → Jev 4命題）
+- [x] **H-05** jev-lint 導入。`rules/` に4本（1問1判断 / LLM は判定しない / 相棒の台詞が漏らさない / 体験主張に観測がある）＋同梱の commit ルール。fixtures と baseline 付き
+- [x] **H-06** スキル `subject-forge`・`journey-check`。外部スキル `jev-lint`・`game-design-reality-check`・`stress-testing-game-concepts` を導入
+- [ ] **H-07** codex 対照群の手順書（同じ PR を普通のチャットで解く群と、終了後に一文で規則を言えるかを比べる）。採点は既存の軸読みで
+- [ ] **H-08** 未提示事例（holdout）を題材スキーマに1枚足し、クリア後に予想だけ書かせる（転移の測定＋締めの演出）
+- [ ] **H-09** jev-question-single-condition が `src/lib/jev.ts` の注文API質問を拾えない（instructions と criteria が別の Record に分かれていて subject に文が無い）。注文APIはダミーなので、直すなら文をインラインにする
+- [ ] **H-10** jev-lint 0.3.2 の Windows 問題2件を上流へ: ast-grep の起動（ラッパーで回避済み）、block ルールの expect.yml ラベルがパス区切りで突き合わない（calibrate --labels で代替）
+
+### ハーネスが出した findings（2026-09-20）
+
+ユーザー決定（2026-09-20 夜）: **F-01/F-02 → F-03 → H-08 の順で着手する。** 方針と検証手順は [HANDOFF.md](HANDOFF.md) 冒頭「次にやること」。F-04 は台帳として残し、F-05 は F-01 の後に再測定してから判断。
+
+- [ ] **F-01** 真相の一文がクリアしない。`types` 軸が 0.36〜0.39 に落ちて L6 が「解釈の確認」になる（stress: 理解者 6/7、subject:check truth-passes-all ✗）。T-31 の [合ってる] があれば通る。types の基準文に「1個特例は一般の型条件ではない」を強める案
+- [ ] **F-02** 報告者の期待「typed=Falseなら1と1.0は同じ」が L5/L6 とも undetermined。否定形の型主張が 0.4〜0.6 帯に落ちる（eval:lru の既知課題と同根）
+- [ ] **F-03** 相棒の台詞の漏れ: `src/subject/lru.ts` L4（0.64）・L7（0.60）が仕組みを示唆、L2 は 0.49 で境界。journey §4 の疑問形に揃える
+- [ ] **F-04** 体験主張に観測がない節: journey.md 7節、concept.md 5節（`npm run lint:jev:check` の claim-has-evidence）。試遊で観測するか、仮定と明記するかを節ごとに決める
+- [ ] **F-05** 列挙者（質問の答えを繋いだ文）は 5/7 で止まる。繋ぎ文が真でないか（順番の扱い）、読み取りの問題かを切り分ける
+
 ## 落としたもの（当日）
 
 - T-05 固定順ダミー（Jev 直結にしたので不要。フォールバックとしてのみ残存）

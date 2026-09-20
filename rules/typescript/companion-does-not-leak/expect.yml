@@ -1,0 +1,15 @@
+default: clean
+fixtures/cases.ts:
+  - { line: 8, label: clean, window: 0, reason: "asks a question; states nothing" }
+  - { line: 13, label: bad, window: 0, reason: "relabelled after the first eval (0.81 bare / 0.69 located): '呼び出し方が違うと、もう一度計算しました' asserts the form difference as the reason for L2, which is L2's answer. journey §4 phrases it as a question ('違うのは何？') for exactly this reason" }
+  - { line: 18, label: bad, window: 0, reason: "explains the mechanism: tuple key inside the implementation" }
+  - { line: 23, label: clean, window: 0, reason: "hard clean: proposes a hypothesis to test and names L6 to compare; the type concept is a place to look, not asserted as the reason" }
+  - { line: 28, label: bad, window: 0, reason: "explains the cause: argument count and the int fast path -- the answer to the whole subject" }
+  - { line: 33, label: bad, window: 0, reason: "relabelled after the first eval (0.70 / 0.78): '2個の引数でも' carries the L5/L6 contrast (argument count changes the type rule) into L7's line; the observation on the same card says only that typed=True includes types" }
+  - { line: 38, label: clean, window: 0, reason: "hint ladder for L2: look, values, written-or-omitted -- all pointing" }
+  - { line: 39, label: clean, window: 0, reason: "hard clean: the last hint names type(1) vs type(1.0), which is the thing to compare on the shown card, not a hidden mechanism" }
+  - { line: 40, label: bad, window: 0, reason: "the third hint says a special treatment exists for one argument -- names the hidden mechanism before the player has looked" }
+  - { line: 44, label: clean, window: 0, reason: "invites comparing; states nothing" }
+  - { line: 45, label: clean, window: 0, reason: "states the limits of what was tested" }
+  - { line: 46, label: bad, window: 0, reason: "asserts a fact about behaviour (one-argument distinction) that is not on the shown cards" }
+  - { line: 47, label: clean, window: 0, reason: "hard clean: names the two shown cards and their outcomes; both are on screen when this line appears" }

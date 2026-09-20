@@ -1,0 +1,9 @@
+# jev-lint 設定（docs/harness.md 参照）。鍵はここに書かない。
+# 既定はこの repo のルール（rules/）だけ。同梱パックは `npm run lint:jev -- run fn-name-promises src` のように個別に呼ぶ。
+rules: [rules]
+paths: [src, scripts, docs]
+apiKeyEnv: JEV_API_KEY
+cache: .jev-lint-cache.json
+group: file
+# 迷いのある判定は断定ではなく問いとして出す（判定は人が読む）
+unsureBelow: 0.55

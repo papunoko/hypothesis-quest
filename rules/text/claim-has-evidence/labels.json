@@ -1,0 +1,10 @@
+{
+  "$default": "clean",
+  "rules/text/claim-has-evidence/fixtures/journey.md": [
+    { "line": 3, "label": "bad", "window": 1, "reason": "迷わず書き始める: no observation" },
+    { "line": 17, "label": "bad", "window": 1, "reason": "薄いバーを見て言い直す: asserted" },
+    { "line": 22, "label": "bad", "window": 1, "reason": "全員が気づき面白さ最大: nothing behind it" },
+    { "line": 26, "label": "clean", "window": 1, "reason": "observed session" },
+    { "line": 31, "label": "clean", "window": 1, "reason": "marked 仮定" }
+  ]
+}

@@ -1,0 +1,49 @@
+# 体験の主張には観測が要る（game-design-reality-check の「証拠の台帳」を機械化する）。
+#
+# journey.md / concept.md には「プレイヤーは〜と気づく」「面白さが最大になる」の
+# ような文が多い。reality-check はそれを 観測 / 出典 / 推論 / 仮定 / 不明 に
+# 分けろと言う。この規則は Markdown の節ごとに「体験の主張があり、その節に
+# 観測・計測・出典が無い」を Noul で拾う。台本を書くこと自体は悪くない。
+# 仮定と書いてあれば false。
+#
+# `subject: block`: 見出し行で分割。見出しの本文がキャプチャ $TITLE。
+# state は bare（節の中に証拠があるかを見る。他の節の観測は数えない）。
+# severity: info（一覧を作るための規則で、直せという規則ではない）。
+
+id: claim-has-evidence
+language: Text
+subject: block
+split: "^#{1,4} (?<TITLE>.+)$"
+extensions: [md]
+kind: noul
+state: bare
+# 0.40, 2026-09-20 に fixtures（8節: 主張3・clean 5、2パス）で fit。はっきりした
+# 主張は 0.82 / 0.91、穏やかな主張（「迷わず書き始める」）は 0.50、clean は
+# 0.05〜0.16。0.40 は clean の上端から 0.24 の余裕、穏やかな主張の下 0.10。
+# 注意: jev-lint 0.3.2 は Windows で block ルールの expect.yml のラベルを
+# 突き合わせられない（パス区切りの不一致）。fit は calibrate --labels で取った。
+at: 0.40
+severity: info
+ask: >-
+  This section ($TITLE) asserts what a player will feel, notice, do, or
+  understand, and nothing in the section backs the assertion with an
+  observation, a measurement, or a cited source.
+criteria:
+  "true": >-
+    The section states a player experience or behaviour as a fact -- they
+    will notice X, this is the most fun moment, nobody gets stuck here, the
+    player writes Y -- and the section contains no playtest observation, no
+    telemetry or measured number about that behaviour, no cited source, and
+    does not mark the statement as an assumption or hypothesis.
+  "false": >-
+    The section makes no claim about player experience (a spec, a procedure,
+    a data table, code, a list of tasks), or every such claim is labelled as
+    an assumption, hypothesis or plan to test, or is backed inside the section
+    by an observation from a named session, a measurement, or a source.
+note: >-
+  A measured latency or a model probability is evidence about the system,
+  not about the player; it does not back a claim about what the player
+  feels. A sentence in the form "if X then the player Y" that the section
+  itself marks as an intended effect to verify is a hypothesis, not a claim.
+  Judge the section alone; observations recorded in other sections do not
+  count here.

@@ -1,0 +1,14 @@
+default: clean
+fixtures/questions.ts:
+  - { line: 6, label: bad, window: 1, reason: "the real orders.ts failure: 'as a condition for reusing' plus 'in a rejection clause do not count' -- mention AND role, two judgments on one term" }
+  - { line: 14, label: bad, window: 1, reason: "same shape as sameContent: IDs mentioned only in a rejection clause do not count -- the answer depends on where the term appears" }
+  - { line: 22, label: clean, window: 1, reason: "one proposition: does the text mention retries. 'IDs alone do not imply retries' sharpens, it is not a second condition" }
+  - { line: 30, label: clean, window: 1, reason: "one proposition: does it say reject on conflict. Naming the situation (same ID, different contents) is the proposition, not a role test" }
+  - { line: 41, label: clean, window: 1, reason: "hard clean: two criteria sentences with several nouns, but a single question -- is this a rule about calls/cache at all" }
+  - { line: 49, label: clean, window: 1, reason: "hard clean: long synonym list plus an explicit-negation clause; still one proposition (does it claim order matters)" }
+  - { line: 57, label: clean, window: 1, reason: "hard clean: the exclusion 'ONLY about typed=True is not a general requirement' narrows the same proposition; it does not ask where the term appears" }
+  - { line: 65, label: bad, window: 1, reason: "'mentions typed=True AND is consistent with observed results' -- mention plus correctness, and correctness needs data the state does not carry" }
+  - { line: 73, label: clean, window: 1, reason: "hard clean: two alternative phrasings of one exception rule, joined by 'or' -- either one is the same single claim" }
+  - { line: 83, label: clean, window: 1, reason: "a Choice with three mutually exclusive purposes is one judgment (which kind)" }
+  - { line: 93, label: bad, window: 1, reason: "each option requires a second test ('and the player has not seen a case yet') that the hypothesis text cannot answer; topic AND player state" }
+  - { line: 104, label: clean, window: 1, reason: "hard clean: 'even if inferred from the calls' widens what counts as a spoiler; still one proposition (does the draft explain the cause)" }

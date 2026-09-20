@@ -1,0 +1,53 @@
+# 相棒の台詞・ヒント・定型文は、答えを言わない。
+#
+# 実行時の検問（src/lib/narration.ts screenText の `spoiler`）と同じ命題を、
+# 題材ファイルに固定で書かれた文にも当てる。journey.md §2b の実測で gemma4 は
+# 「型が違えば別物として扱われます」を一度漏らした。固定文も人が書けば漏れる。
+#
+# 対象: `companion` / `note` / `fallback` などの文字列プロパティと、ヒント配列。
+# subject は pair（キー名が役割を示す）。state は located: 「見せている結果の
+# 言い直し」か「見せていない事実」かは、同じカードの observation / actual を
+# 見ないと決められない（bare では3つの hard clean が 0.70〜0.81 で誤検出した）。
+
+id: companion-does-not-leak
+languages: [TypeScript, Tsx]
+kind: noul
+subject: node
+state: located
+# 0.50, 2026-09-20 に fixtures（13文: 漏れ6・clean 7、2パス）で fit。located に
+# してから漏れは 0.64 以上、clean の上端は 0.33〜0.34（fitted 0.49〜0.50）。
+# 最初の bare 計測で clean 扱いだった L2 と L7 の相棒文は、読み直して漏れに
+# 付け替えた（expect.yml の reason 参照）。実コード src/subject/lru.ts の同じ
+# 2文も同じ判定になるはずで、それは直すべき findings として扱う。
+at: 0.50
+severity: warning
+rule:
+  kind: pair
+  has:
+    field: key
+    regex: "^(companion|note|fallback|hint|hints|voice|unasked|split|L[0-9]+)$"
+ask: >-
+  This line, shown to the player beside a case, explains the hidden mechanism
+  or states an outcome the player has not observed, instead of pointing at
+  what to compare.
+criteria:
+  "true": >-
+    Names the cause of a difference (the number of arguments, an int/str fast
+    path, how the internal key or tuple is built, what the implementation
+    does inside), states the result of a comparison that is not on the shown
+    cards, or tells the player that a specific feature is the one that
+    differs before they have looked.
+  "false": >-
+    Restates the outcome the player is looking at, asks a question, invites
+    comparing two cards, names what is the same, points at a place to look
+    (the arguments, the setting, the values), or says the limits of what was
+    tested. A line that names which cards to compare or which outcomes they
+    showed is not a leak when those cards are the ones being shown.
+note: >-
+  The key name says the role: companion and hints are the voice beside a
+  case; fallback, note, split are fixed replies; L-numbered arrays are hint
+  ladders. Use the surrounding file to tell what the player is looking at: an
+  outcome recorded in the same card's `observation` or `actual`, or on cards
+  the line names, is observed and may be restated. Mentioning a concept
+  (type, order) as something to look at is pointing; asserting that it is the
+  reason, or how the code handles it, is explaining.

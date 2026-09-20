@@ -1,12 +1,28 @@
 # 引継ぎメモ
 
+## 続きの実装（2026-09-20）
+
+- Noul 4軸を維持し、仮説だけの構造化stateと短い英語の質問＋true/falseの基準に変更。拒否節でのID言及を再利用条件に数えず、ID一致から再送を補完しないよう定義した。公式仕様どおり `answers.*.noul` を読み、不正応答は失敗にする。
+- 単なる日本語質問の短縮では混同が残った。基準を追加した実測では「同じ商品は重複して登録しない」→ C3、「同じ依頼IDなら、登録は1件のまま」→ C4。主要な2分岐を確認。
+- `npm run eval:jev` で6仮説の読み取り・全事例の予想・次の事例を再測定できる（実APIを6回呼ぶ）。再送＋拒否の仮説はC5だが判定強度が低く「解釈の確認」。単なる「再送では増やさない」は拒否節がないためC4が先に出る。
+- 曖昧な軸の全組合せで予想が変わる場合は「決まらない」。結果に関わる軸の確率から算出したアプリ独自の判定強度が0.55未満なら、事例選択・履歴も含めて反証と断定しない。NoulにAPI提供のconfidenceはない。
+- 全事例表示は仮説の正しさを保証しないため、終了文を「6事例を見終えました」に修正。再開ボタン、終了後のCtrl+Enter抑止、障害時も最後の実結果を見て終了できる導線を追加。
+- `npm test` は14件（6事例の実結果＋判定・応答検証）。Playwrightは `npm run test:e2e`（API応答を固定した画面回帰）、`npm run test:e2e:live`（実Jevの2分岐）。初回は `npx playwright install chromium`。
+- 注文APIの動作確認台本: [demo-orders.md](demo-orders.md)。本番題材のlru_cache載せ替えは [backlog.md](backlog.md) のT-60以降として残る。
+- 限界: 複数条件はANDとして扱う。任意の否定・OR・例外・数量条件を扱う汎用の仮説解釈器ではない。未評価の言い換えを含む一般精度は未保証。
+
+再開後の検証: 単体14/14、Playwright 5/5（画面回帰4件＋実Jev1件）、TypeScript・本番ビルドを通過。PC 1440px／スマホ390pxのスクリーンショットを確認し、横あふれなし。
+
+## 以下は再開前の記録
+
 2026-09-20 ハッカソン当日、残り約1h時点で中断。
 
 ## いまの状態
 
-- `npm run dev` で画面が動く。`npm test` は 6/6 通過。`npx tsc --noEmit` はエラーなし
+- `npm run dev` で画面が動く。`npm test` は 6/6 通過。`npx tsc --noEmit` と `npm run build` はエラーなし
 - **未コミット。** `git status` で docs 再編＋実装一式が出る
 - Jev キーは `.env.local`（gitignore 済み）
+- 公開は `npm start` + Cloudflare Tunnel。手順は [deployment.md](deployment.md)
 
 ## 動いていること
 
@@ -55,6 +71,12 @@ git 履歴には残っていない（未コミットのまま書き換えたた�
      -d '{"hypothesis":"同じ依頼IDなら、登録は1件のまま","shown":[]}'
    ```
 
+## 題材の位置づけ（2026-09-20 決定）
+
+- **題材1 注文API = 開発用ダミー。** 骨格と Jev 呼び出しを作るための架空題材。デモには使わない
+- **題材2 lru_cache = 本番題材。** [subjects/lru-cache.md](subjects/lru-cache.md)。載せ替えは [backlog.md](backlog.md) T-60〜
+- 順番: Jev 読み取りの安定化（題材1で解く）→ 共通スキーマ → 題材2 載せ替え → デモ台本は題材2で
+
 ## 当日決めたこと（grill の結果）
 
 [roadmap.md](roadmap.md) 冒頭の表を参照。結果軸4択・仮説は「何を守っているか」・発表者が2分プレイ・confidence 閾値 0.55。
@@ -62,5 +84,6 @@ git 履歴には残っていない（未コミットのまま書き換えたた�
 ## 環境メモ
 
 - Python はストア版スタブのみで未インストール。題材は TS で書いた
-- `tg` は PATH になし。検索は Grep ツール（ripgrep）を使った
+- `tg`（tgrep 1.0.9）を `%USERPROFILE%\.cargo\bin\tg.exe` に導入済み
+- `cloudflared` を導入・ログイン済み。Tunnel 公開に Wrangler は不要
 - Next.js は create-next-app ではなく手動 scaffold（README.md が既にあり衝突するため）

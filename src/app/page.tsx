@@ -3,11 +3,10 @@
 import { useMemo, useRef, useState } from "react";
 import { CASES, OUTCOME_LABEL, UNEXPLORED, type CaseCard } from "@/subject/cases";
 import type { CaseResult, Verdict } from "@/lib/select";
+import { CONFIDENCE_THRESHOLD } from "@/lib/select";
 import { AXES, AXIS_LABEL, type Reading } from "@/lib/jev";
 
 type HistoryEntry = { hypothesis: string; caseId: string | null; verdict: Verdict | "exhausted" | "error" };
-
-const CONFIDENCE_THRESHOLD = 0.55; // D-01: これ未満は反証と断定せず「解釈の確認」に回す
 
 const byId = Object.fromEntries(CASES.map((c) => [c.id, c])) as Record<string, CaseCard>;
 
@@ -36,7 +35,7 @@ export default function Page() {
 
   async function submit() {
     const h = hypothesis.trim();
-    if (!h || busy) return;
+    if (!h || busy || ended) return;
     setBusy(true);
     setError(null);
     try {
@@ -74,6 +73,8 @@ export default function Page() {
     setCurrent({ c, r: { id: c.id, prediction: "undetermined", confidence: 0, verdict: "undetermined" } });
     setShown((s) => [...s, c.id]);
     setFallback(true);
+    setReading(null);
+    setHistory((x) => [...x, { hypothesis: "予想なしで確認", caseId: c.id, verdict: "undetermined" }]);
     setError(null);
   }
 
@@ -81,7 +82,7 @@ export default function Page() {
     inputRef.current?.focus();
   }
 
-  const lowConfidence = current ? current.r.confidence > 0 && current.r.confidence < CONFIDENCE_THRESHOLD : false;
+  const lowConfidence = current ? current.r.prediction !== "undetermined" && current.r.confidence < CONFIDENCE_THRESHOLD : false;
 
   return (
     <main>
@@ -113,6 +114,9 @@ export default function Page() {
                   <p className="hint">
                     Jev に接続できなかったため予想なしで表示しています。実際の結果:{" "}
                     <b>{OUTCOME_LABEL[current.c.actual.outcome]}</b>（HTTP {current.c.actual.status}）
+                    {remaining.length === 0 && <button onClick={() => {
+                      setCurrent(null); setEnded(hypothesis.trim() || "仮説なし");
+                    }}>確認を終える</button>}
                   </p>
                 ) : (
                   <>
@@ -120,7 +124,7 @@ export default function Page() {
                       <div className="box">
                         <div className="label">あなたの仮説から Jev が読み取った予想</div>
                         <b>{OUTCOME_LABEL[current.r.prediction]}</b>
-                        <div className="hint">確信度 {(current.r.confidence * 100).toFixed(0)}%</div>
+                        <div className="hint">判定強度 {(current.r.confidence * 100).toFixed(0)}%（読み取り確率から算出）</div>
                       </div>
                       <div className="box">
                         <div className="label">実際の結果（事前に実行して確認済み）</div>
@@ -164,7 +168,7 @@ export default function Page() {
                   </>
                 )}
 
-                <div className="companion">相棒「{current.c.companion} この違いは、今の説明に入ってる？」</div>
+                <div className="companion">相棒「{current.c.companion}」</div>
                 <div className="row">
                   <button onClick={rewrite}>こういうこと？（仮説を書き直す）</button>
                   <details>
@@ -179,10 +183,10 @@ export default function Page() {
 
             {ended && (
               <div className="case ending">
-                <h3>用意した{CASES.length}事例では、この説明で説明できました。</h3>
+                <h3>用意した{CASES.length}事例を見終えました。</h3>
                 <p>「{ended}」</p>
                 <p>
-                  <b>ただし確認したのはこの{CASES.length}つだけです。</b> 「正しい」とは言いません。まだ確かめていない論点:
+                  <b>確認したのはこの{CASES.length}つだけです。</b> 全事例を見たことは、最後の仮説ですべて説明できたことを意味しません。まだ確かめていない論点:
                 </p>
                 <ul className="plain">
                   {UNEXPLORED.map((u) => (
@@ -192,6 +196,10 @@ export default function Page() {
                 <p className="hint">
                   この区別がコードのどこに表れているか: src/subject/orders.ts（依頼IDの照合と fingerprint の比較）
                 </p>
+                <button onClick={() => {
+                  setEnded(null); setCurrent(null); setShown([]); setHistory([]);
+                  setReading(null); setFallback(false); setError(null);
+                }}>この仮説でもう一度試す</button>
               </div>
             )}
 
@@ -250,7 +258,7 @@ export default function Page() {
               </button>
               <span className="hint">Ctrl+Enter でも送れます。正誤の採点はしません。</span>
             </div>
-            <p className="hint">Jev には仮説と操作列だけを渡します。実際の結果は渡しません。照合はコードが行います。</p>
+            <p className="hint">Jev は仮説文だけを読みます。事例への当てはめと、実際の結果との照合はコードが行います。</p>
           </div>
 
           <div className="panel" style={{ marginTop: 16 }}>
@@ -268,7 +276,7 @@ export default function Page() {
                       {h.verdict === "mismatch" && " 食い違い"}
                       {h.verdict === "undetermined" && " 決まらない"}
                       {h.verdict === "match" && " 説明できた"}
-                      {h.verdict === "exhausted" && " 6事例すべて説明できた"}
+                      {h.verdict === "exhausted" && " 6事例を確認して終了"}
                       {h.verdict === "error" && " Jev 失敗"}
                     </span>
                   </li>

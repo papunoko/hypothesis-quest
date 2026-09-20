@@ -21,30 +21,43 @@ export const AXIS_LABEL: Record<Axis, string> = {
 /** 各軸の確率（仮説がその条件を挙げている確率） */
 export type Reading = Record<Axis, number>;
 
-const WORLD = `注文登録APIについて、プレイヤーが「この仕組みは何を守っているか」を一文で書きました。
-API: 注文を送ると登録されます。各リクエストには 商品・数量 と、任意で 依頼ID が付きます。
-以下の仮説の文面だけを読んで答えてください。APIの実装や一般的な知識で補わないでください。`;
-
 const QUESTIONS: Record<Axis, string> = {
-  sameContent:
-    "この仮説は、「商品（または注文の中身）が前と同じであること」を、登録を増やさない・重複させない条件として挙げているか？",
-  sameKey: "この仮説は、「依頼IDが前と同じであること」を、登録を増やさない・1件のままにする条件として挙げているか？",
-  retry:
-    "この仮説は、「再送であること（同じ注文をもう一度送ること・通信の再試行）」を、登録を増やさない条件として挙げているか？",
-  rejectConflict: "この仮説は、「同じ依頼IDなのに中身が違う場合は拒否（エラー）する」と言っているか？",
+  sameContent: "Does `hypothesis` explicitly name matching products or contents as a condition for reusing a registration?",
+  sameKey: "Does `hypothesis` explicitly name matching request IDs as a condition for reusing a registration?",
+  retry: "Does `hypothesis` explicitly mention retries or resending as a condition for preventing duplicate registrations?",
+  rejectConflict: "Does `hypothesis` say to reject different contents sent with the same request ID?",
+};
+
+const CRITERIA: Record<Axis, { true: string; false: string }> = {
+  sameContent: {
+    true: "The reuse/deduplication rule explicitly says 同じ商品 or 同じ中身 (or equivalent).",
+    false: "Only IDs or retries are named. Different contents mentioned in a rejection clause do not count.",
+  },
+  sameKey: {
+    true: "The reuse/deduplication rule explicitly says 同じ依頼ID (or equivalent).",
+    false: "Only products or retries are named. IDs mentioned only in a rejection clause do not count.",
+  },
+  retry: {
+    true: "The text explicitly says 再送, 再試行, もう一度送る (or equivalent).",
+    false: "No retry/resending is mentioned. Matching IDs or products alone do not imply retries.",
+  },
+  rejectConflict: {
+    true: "Explicit rejection/error for different contents with the same ID.",
+    false: "No rejection clause. Keeping one registration alone does not imply rejection.",
+  },
 };
 
 export async function readHypothesis(hypothesis: string): Promise<Reading> {
   const apiKey = process.env.JEV_API_KEY;
   if (!apiKey) throw new Error("JEV_API_KEY is not set");
 
-  const questions = Object.fromEntries(AXES.map((a) => [a, { type: "noul", instructions: QUESTIONS[a] }]));
+  const questions = Object.fromEntries(AXES.map((a) => [a, { type: "noul", instructions: QUESTIONS[a], criteria: CRITERIA[a] }]));
 
   const res = await fetch("https://api.typesafe.ai/v1/systemone", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      state: `${WORLD}\n\n# プレイヤーの仮説\n「${hypothesis}」`,
+      state: { hypothesis },
       model: "jev-latest",
       questions,
     }),
@@ -57,8 +70,11 @@ export async function readHypothesis(hypothesis: string): Promise<Reading> {
   for (const a of AXES) {
     const ans = json.answers?.[a];
     if (!ans) throw new Error(`Jev response missing answers.${a}`);
-    // Noul: probabilities に yes/no の確率が入る。無ければ noul(0/1) を使う
-    const p = typeof ans.probabilities?.yes === "number" ? ans.probabilities.yes : typeof ans.noul === "number" ? ans.noul : 0;
+    // v1 Noul の値そのものが yes の確率。不正な応答を「no」に変換しない。
+    const p = ans.noul;
+    if (ans.type !== "noul" || typeof p !== "number" || !Number.isFinite(p) || p < 0 || p > 1) {
+      throw new Error(`Jev response invalid answers.${a}`);
+    }
     reading[a] = p;
   }
   return reading;

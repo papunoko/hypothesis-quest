@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --test src/subject/*.test.ts"
+    "test": "node --test src/subject/*.test.ts src/lib/*.test.ts",
+    "eval:jev": "node --env-file=.env.local scripts/eval-jev.mts",
+    "test:e2e": "playwright test --project=ui",
+    "test:e2e:live": "playwright test --project=live"
   },
   "dependencies": {
     "next": "latest",
@@ -14,6 +17,7 @@
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",

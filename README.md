@@ -1,147 +1,163 @@
 # 仮説クエスト (Hypothesis Quest)
 
-現在の作業先は `C:/Users/ABC/pj/jev-hathon`。**[ebiharadev.org](https://ebiharadev.org) で公開中**（Cloudflare Workers + D1）。公開は2026年9月30日いっぱい、日本時間10月1日0時に画面・APIを自動停止します。[運用手順](docs/deployment.md) を参照。派生worktreeは削除済みです。
+> 読む前に、自分の説明を試す。
 
-## 3002版：LLM回答とレビュー提出
+AI が書いたコードを **読んで理解する** 代わりに、**自分の言葉で「この仕組みが守っているルール」を書く** ブラウザゲームです。書いた一文はその場で判定され、**その説明では説明できない事例** が向こうからやってきます。
 
-LLM回答・最終提出・UI調整は元フォルダに統合済み。開発サーバーは3002、Workersプレビューは8787です。
+**▶ 遊ぶ: https://ebiharadev.org**
 
-```powershell
-npm ci
-# .dev.vars: JEV_API_KEY と OLLAMA_API_KEY（値はGitに入れない）
-npm run dev              # http://localhost:3002
-npm run eval:narration   # 実LLM生成とJev検問の評価
-```
+> **公開は2026年9月30日まで**（日本時間）。10月1日0時に画面と API が自動で停止します。それ以降に来た方は、以下のスクリーンショットと[ローカルでの動かし方](#ローカルで動かす)をどうぞ。
 
-- 質問には検証済みの比較結果を使ってLLMが回答。通常は原因を先に明かさず、「理由も知りたい」でヒントを開ける。
-- レビュー画面で最後の仮説・判断・コメントを入力し、**明示的に提出**すると7事例を照合してLLMが返答。D1に提出と返答を保存し、後から読み返せる。GitHubへの投稿・マージ操作はしない。
-- 生成はOllama Cloudの `gemma4:31b`（`OLLAMA_MODEL`で変更可）。JevのNoulで根拠外の主張・個人の採点を検問し、通常質問では原因の先出しも検問。0.30以上または通信・形式エラーなら生成文を表示せず定型文に戻す。検問は誤りゼロの保証ではない。
-- 質問文／提出文と、その場で必要な実測・確認した質問の要約をOllama Cloudへ送信。生成文と根拠をJevへ送信する。入力中のLLM呼び出しはない。秘密情報は入力しないこと。
-- 保存先はD1（開発中は `.wrangler/state`）、Cookie名は互換性のため `quest-session-3002` を継続。旧SQLiteは保持するが自動移行しない。WorkerにIP別レート制限を実装済み。認証・自動削除は未実装。
-- レビュー提出後も「質問・観察を続ける」で下書き・回答を残して探索へ戻れる。「新しいセッションを始める」は確認後にアプリCookieのみ切り替える。旧履歴へUIから戻れなくなるが、DBの削除ではない。
-- 未検証の任意コードの実行や、任意の質問への回答保証はしない。生成文を根拠に実結果やクリア判定を書き換えることもない。
+![導入画面。あなたはCPythonのメンテナで、届いたPRをレビューする](docs/images/intro.png)
 
-以下の古い記録に3000/3001の起動例があるが、このツリーで試すポートは3002。
-
-最新の検証結果・デプロイ済み範囲は [HANDOFF](docs/HANDOFF.md) を参照。検問の評価スクリプトでは通常回答・ヒント・提出解説の生成と、根拠外の断定／原因の先出しの非表示を確認します。検問の成功は任意の生成文の正しさの保証ではありません。
-
-> AI成果物を **読む** 代わりに、**自分の説明を書いて試す** ミニゲーム。
-
-TypeSafe Jev ハッカソンの制作物。Jevは「理解度の採点」ではなく、**あなたが書いた自然文の仮説を読み取る**ために使う。
+TypeSafe Jev ハッカソンの制作物です。Jev は「あなたの理解度を採点する」ためではなく、**あなたが書いた自然文を読み取る** ために使っています。
 
 ---
 
-## 何を解くのか
+## 何をする遊びか
 
-AIは1時間で3000行書く。人間がそれを理解するには3日かかる。
-解説を読んでも「わかった気」にしかならない ―― **理解がボトルネック**になっている。
+あなたは CPython のメンテナです。今日、こんな PR が届きました。
 
-だから、読むのをやめる。**自分の言葉で「この仕組みが守ろうとしているルール」を書く。**
-すると、その説明では扱えない事例が向こうからやってくる。
+> **「`typed=False` なら、`f(1)` と `f(1.0)` を同じ呼び出しとして扱う」**
+> 作者いわく「`1 == 1.0` なのにキャッシュが外れるのはバグ。近道を外せば直る。テストも足した」
 
-## 体験の一巡
+マージしていいか決めるには、**いまの実装が何を「同じ呼び出し」とみなしているか** を、自分の言葉で言えなければいけません。そこで一文を書きます。すると、その一文では説明のつかない事例が出てきます。
+
+これは架空の PR ですが、中身は実在のバグ報告 [bpo-39554](https://bugs.python.org/issue39554)（2020年）の報告者の期待そのものです。作者本人（Raymond Hettinger）が実際に下した判断を、あなたが追体験することになります。
+
+![観察画面。左に事例カード、右に入力欄と読み取り](docs/images/workspace.png)
+
+## 一巡の流れ
 
 ```
-  あなたが一文の仮説を書く
-        「同じ商品は重複して登録しない」
+  あなたが一文を書く
+        「同じ引数で呼べば記憶を返す」
               │
               ▼
-  Jev が仮説の条件を読み取り、コードが各事例に当てはめる
+  Jev が、その文が挙げている条件を読み取る
               │
               ▼
-  コードが、事前に検証済みの実際の結果と照合する
+  コードが条件を7つの事例に当てはめて、結果を予想する
               │
               ▼
-  食い違う事例が出てくる
-        事例B 意図的な2件目 → 予想 1件 / 実際 2件  ✗
+  コードが、事前に実測済みの結果と照合する
               │
               ▼
-  「商品が同じかじゃなく、同じ依頼かどうかだ」と書き直す
+  食い違った事例が出てくる
+        f(1) のあと f(1, 0) → 予想「記憶を返す」/ 実際「もう一度計算する」
+              │
+              ▼
+  あなたが説明を書き直す
 ```
 
-用語を覚えてから例題を解くのではない。**自分が遭遇した問題に、あとから用語と構造が結びつく。**
+質問からでも始められます。「型は関係ある？」と聞けば、検証済みの比較から「はい／いいえ／場合による／まだ答えられません」が返り、根拠の事例が並びます。用語を覚えてから例題を解くのではなく、**自分がぶつかった問題に、あとから用語と構造が結びつく** 順番です。
 
-## Jevの役割（設計の核心）
+止まっていると、経過時間・入力量・スクロール・ポインタの動きから「いまどんな助けが要るか」を Jev が読み、書き出しの候補や次の一手を出します。入力した文そのものは、この判定には送っていません。
+
+> **ネタバレ注意**: `docs/subjects/lru-cache.md` と `docs/journey.md` には答えが書いてあります。先に遊びたい方は開かないでください。
+
+## 設計の核心 — Jev に正解を判定させない
 
 | 担当 | 仕事 |
 | --- | --- |
-| **Jev** | 自然文の仮説から4軸の条件を読み取る（Noul、1リクエスト） |
-| **コード** | 条件を事例に当てはめて予想し、実結果と照合して次の事例を選ぶ |
-| **人間** | 仮説を書く。Jevの読み取りが違っていたら訂正する |
+| **Jev** | 自然文が「どの条件を挙げているか」を6軸の確率で読む。入力が質問か仮説かも読む |
+| **コード** | 読み取った条件を事例に当てはめ、実測済みの結果と照合し、次に出す事例を選ぶ |
+| **LLM** | 言葉を書くだけ。判定には触れない。生成文は Jev が「根拠にない主張が混じっていないか」で検問する |
+| **あなた** | 仮説を書く。Jev の読み取りが違っていたら、送信前に画面で気づいて直す |
 
-**Jevに正解を判定させない。** これによって、AIが反例を捏造できず、「AIに理解度を採点される」不快感も構造的に発生しない。Jevのconfidenceが低いときは「理解不足」ではなく **解釈の確認** に回す。
+**正解を判定するのは常にコードで、材料は事前に実測した固定データです。** この分担のおかげで、
+
+- AI が反例を捏造できません（事例は CPython 3.12.3 での実測値）
+- 「AI に理解度を採点される」不快感が構造的に発生しません
+- Jev の確信度が低いときは、「理解不足」ではなく **解釈の確認** に回せます
+
+LLM は解説とヒントの文章を書くだけで、結果やクリア判定を動かせません。検問は Jev の Noul 判定で行いますが、誤りゼロの保証ではありません。
+
+## 使っている技術
+
+Next.js + React + TypeScript、Cloudflare Workers + D1（OpenNext 経由）。判定は [TypeSafe Jev](https://typesafe.ai) の System One API（Noul / Choice）、文章生成は Ollama Cloud の `gemma4:31b`。
+
+```
+src/subject/lru.ts        題材データ。7事例＋別論点＋未提示事例、6軸の問いと基準
+src/lib/lru-input.ts      入力を Jev で読む（軸の確率＋質問か仮説か＋話題）
+src/lib/lru-select.ts     予想と照合、次に出す事例の選択（すべてコード側）
+src/lib/support.ts        止まり方から「どの助けが要るか」を読む
+src/lib/narration.ts      LLM 生成と、その検問
+src/app/page.tsx          画面
+src/app/api/              read / predict / support / explain / review / notebook / session
+```
+
+`/orders` に開発用のダミー題材（架空の注文登録 API）も残っています。
+
+## ローカルで動かす
+
+Node.js 22.18 以降が必要です。Jev と Ollama Cloud の API キーは各自で用意してください。
+
+```bash
+npm ci
+cp .dev.vars.example .dev.vars   # JEV_API_KEY と OLLAMA_API_KEY を記入する
+npm run dev                      # http://localhost:3002
+```
+
+`.dev.vars` は Git に入りません。Cloudflare へ配信する場合は `wrangler.example.jsonc` を `wrangler.jsonc` に複製し、自分の `account_id` / `database_id` / ルートを設定してください（本番用の実ファイルはこのリポジトリに含めていません）。
+
+```bash
+npm run preview   # Workers としてローカル起動 http://localhost:8787
+npm run deploy    # ビルド → D1 migration → 配信
+```
+
+## テストと評価
+
+```bash
+npm test                        # 単体40件。判定・検問・保存・公開期限
+npx playwright install chromium
+npm run test:e2e                # 画面回帰（API 応答は固定）
+npm run test:e2e:live           # 実 Jev / 実 LLM を使う経路
+npm run verify:lru              # 実際の CPython 3.12.3 と画面データを照合（9件）
+```
+
+`verify:lru` は Python 3.12.3 を呼びます（Windows では WSL 経由）。**画面に出る結果は、すべてこのスクリプトで再現できる実測値です。**
+
+実 Jev を使う評価は `eval:jev` / `eval:lru` / `eval:questions` / `eval:narration`。結果は `docs/eval/` に日付付きで残しています（成功も失敗も消していません）。
+
+## ハーネス — 体験と題材を批判的に測る
+
+「面白いはず」を検証可能にするための道具立てです。原則は **測ることはスクリプト、読んで決めることはスキル**。
+
+| 何を測るか | コマンド |
+| --- | --- |
+| 固定戦略ボットで攻略できてしまわないか | `npm run harness:stress` |
+| プレイ記録から核心への接近と離脱点 | `npm run harness:notebook` |
+| 題材が謎として成立しているか | `npm run subject:check` |
+| 助け舟の判定が止まり方を区別できるか | `npm run harness:support` |
+| 自然言語のコード規約（後述） | `npm run lint:jev:check` |
+
+`lint:jev` は Jev を使った自然言語リントです。「Jev に投げる問いが1問1判断になっているか」「LLM の出力が判定に流れ込んでいないか」「相棒の台詞が答えを漏らしていないか」といった、型検査では見えない規約を `rules/` に自然文で書いて検査します。
+
+題材そのものを探す道具もあります。`subject:mine` で GitHub の古いイシューを掘り、`subject:rank` が Jev で「謎として成立しそうか」を順位付けします。
 
 ## ドキュメント
 
 | ファイル | 内容 |
 | --- | --- |
-| [docs/concept.md](docs/concept.md) | 企画の詳細。題材・事例カード・Jev呼び出し設計・不可侵ルール |
-| [docs/roadmap.md](docs/roadmap.md) | フェーズと到達点。どこまで作れば成立するか |
-| [docs/backlog.md](docs/backlog.md) | 実装タスク一覧 |
-| [docs/decisions.md](docs/decisions.md) | なぜこの1本に絞ったか。検討した8案と不採用理由 |
-| [docs/deployment.md](docs/deployment.md) | Workers + D1 / ebiharadev.org の設定・Secrets・デプロイ手順 |
-| [docs/subjects/lru-cache.md](docs/subjects/lru-cache.md) | **本番題材**: functools.lru_cache。事例8枚・出典イシュー・コードへの戻り先 |
-| [docs/journey.md](docs/journey.md) | 本番題材のプレイ体験。メンテナとして PR をレビューする導入・軸の実測・入力中の鏡と「直観の声」（LLM+Jev検閲）・4手のジャーニー・台本 |
-| [docs/harness.md](docs/harness.md) | 体験と題材を批判的に測るハーネス。固定戦略ボット・帳面レポート・題材検査・jev-lint（自然言語ルール）・スキル。結果は `docs/eval/` |
-| [docs/research/jev-use-cases.md](docs/research/jev-use-cases.md) | 公開Jevユースケース調査（公式Docs・OSS） |
-| [docs/research/chatgpt-rally.txt](docs/research/chatgpt-rally.txt) | 企画の原典。TRPG／数学ガール／ゲーム設計論の往復ログ |
+| [docs/concept.md](docs/concept.md) | 企画の詳細。事例カード・Jev 呼び出し設計・不可侵のルール |
+| [docs/decisions.md](docs/decisions.md) | なぜこの1本に絞ったか。検討した8案と不採用理由、「それ LLM でよくね？」への回答 |
+| [docs/journey.md](docs/journey.md) | プレイ体験の設計（**答えを含みます**） |
+| [docs/subjects/lru-cache.md](docs/subjects/lru-cache.md) | 題材の詳細（**答えを含みます**） |
+| [docs/harness.md](docs/harness.md) | ハーネスの全体像と使い方 |
+| [docs/deployment.md](docs/deployment.md) | Workers + D1 の構成・公開期限・レート制限 |
+| [docs/backlog.md](docs/backlog.md) / [docs/roadmap.md](docs/roadmap.md) | 残タスクとフェーズ |
+| [docs/HANDOFF.md](docs/HANDOFF.md) | 最新の実装状態と検証記録。**何が検証済みで何が未検証か** はここが正 |
+| [docs/eval/](docs/eval/) | 測定結果の生ログ。ボット・リント・試遊・題材検査 |
 
-## ローカルで動かす
+## 保存と送信について
 
-```powershell
-npm ci
-# .dev.vars に JEV_API_KEY / OLLAMA_API_KEY を保存する
-npm run dev       # D1 migration後 http://localhost:3002
-npm test          # 事例判定・検問・D1保存など
-```
+- 入力・読み取り・返答・提示した事例・提出内容を **D1 に保存** します（開発中はローカル、公開版は Cloudflare）。
+- 入力文は TypeSafe Jev へ、質問文と提出文および限定した根拠は Ollama Cloud へ送信します。
+- 記録はブラウザのセッション Cookie で分離されます。認証はなく、匿名です。自動削除は未実装です。
+- **秘密情報は入力しないでください。**
+- 公開版は IP 単位のレート制限付きです。詳細は [deployment.md](docs/deployment.md)。
 
-## 検証する
+## ライセンス
 
-検証は `npm test`（ローカルD1を含む）と `npm run eval:jev`（注文APIの実Jev評価）、`npm run eval:lru`（題材2の14仮説）、`npm run eval:questions`（質問等9入力）。件数・結果はHANDOFFに記録する。
-ブラウザテストには [Playwright](https://playwright.dev/docs/test-webserver) を使用する。
-初回に `npx playwright install chromium` を実行してから、以下を使う。
-
-```powershell
-npm run test:e2e       # 画面回帰（API応答固定）
-npm run test:e2e:live  # 実Jev/LLM（質問・帳面・提出の保存と復元を含む）
-```
-
-テスト用サーバーはlocalhost:3002。Workersプレビューを検証する場合は `PLAYWRIGHT_BASE_URL=http://localhost:8787` を設定。スクリーンショットと失敗時traceは `test-results/`。
-注文APIの動作確認台本は [docs/demo-orders.md](docs/demo-orders.md)。
-
-## Cloudflare Workersで公開する
-
-`npm run preview` でWorkersをローカル確認、`npm run deploy` で更新できます。D1・Secrets・本番Routeは設定済みです。再デプロイでも9月末の公開期限を維持してください。[運用手順](docs/deployment.md) を参照。
-
-## 題材
-
-| | 題材 | 位置づけ |
-| --- | --- | --- |
-| 題材1 | 架空の注文登録API（Idempotency-Key） | **開発用ダミー。** `/orders` に保持 |
-| 題材2 | `functools.lru_cache` | **本番題材。** 実イシュー由来の事例8枚。デモはこちらで行う → [docs/subjects/lru-cache.md](docs/subjects/lru-cache.md) |
-
-## 現状
-
-**質問も受け付けます。** 「型は関係ある？」と聞くと、Jevが入力の種別・話題を読み、コードがL5/L6の実測から「場合による」と返して2枚並べます。答える対象の問いを明示し、未検証の質問は「まだ答えられません」と返します。曖昧な入力は質問／仮説の選択で確認できます。
-
-**入力はD1に保存**します（開発中はローカル、本番ではCloudflare）。入力・読み取り・返答・提示事例・時刻・提出を保存。入力文はTypeSafe Jevへ、質問・提出時の文と限定した根拠はOllama Cloudへ送信します。秘密情報は入力しないでください。
-
-帳面はブラウザのセッションCookieで分離され、再読み込み後も復元できます。Cookieが失われると元の帳面への画面上のアクセスも失われますが、DBは自動削除されません。「もう一周する」は帳面の削除ではありません。保持期間・DB削除導線は未整備。公開レート制限と期限は [deployment.md](docs/deployment.md) を参照。
-
-**トップ画面は題材2。** 実在のbpo-39554を背景にした演習用PRを読み、現状の振る舞いを仮説と7事例で確かめ、レビュー下書きを書く。入力中の読み取り・L5/L6比較・コード行へのリンク付き。L8は別論点として開ける。
-
-`npm run verify:lru` はWSLのCPython 3.12.3で9件（L1〜L8とH1）の実結果と画面データを照合する。`npm run eval:lru` は実Jevの14文評価（不一致があれば終了コード1）。直近の期待事例一致は11/14で、否定や複合例外の読みには課題が残る。詳細は [docs/HANDOFF.md](docs/HANDOFF.md)。
-
-## 構成
-
-```
-src/subject/orders.ts       題材（AIが書いた想定の注文API・Idempotency-Key）
-src/subject/orders.test.ts  6事例の実結果が題材コードと一致することの検証記録
-src/subject/cases.ts        事例カード6枚 + 未確認の論点
-src/lib/jev.ts              Jev 呼び出し（仮説文のみ渡す。実結果は渡さない）
-src/lib/select.ts           照合と、次に出す事例の選択（コード側）
-src/app/api/predict/        APIルート1本（キーはサーバー側）
-src/app/page.tsx            画面1枚
-```
-
-Next.js + React + TypeScript + OpenNext + Cloudflare Workers/D1。Jevが入力を読み、コードが事例から回答・照合を行い、Ollamaの生成文をJevが検問します。入力中のLLMの声・曖昧文の分割は保留です。
+ライセンス未設定のため、既定では著作権者に全権利が留保されます。参照・学習にはご自由にどうぞ。再利用をご希望の方はご連絡ください。

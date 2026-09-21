@@ -1,6 +1,6 @@
 # subject:mine / subject:rank 初回の実走（2026-09-20）
 
-`gh auth login` 済みのトークン（`GITHUB_TOKEN="$(gh auth token)"`）で python/cpython を掘り、Jev で順位付けした。表は `subject-rank-python-cpython-2026-09-20.md`、候補本文は `subject-candidates/*.jsonl`。
+`gh auth login` 済みのトークン（`GITHUB_TOKEN="$(gh auth token)"`）で python/cpython を掘り、Jev で順位付けした。表は `subject-rank-python-cpython-2026-09-20.md`、候補本文は `subject-candidates/*.jsonl`（第三者のメールアドレスを含む外部イシュー本文のため、Gitには入れずローカルのみ。`subject:mine` で再生成できる）。
 
 ## 走らせたもの
 

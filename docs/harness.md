@@ -34,6 +34,8 @@ docs/eval/                 日付付きの記録（消さない）
 | 題材検査 | `npm run subject:check [-- --spec scripts/subject/specs/lru-cache.json]` | `scripts/subject/check.mts` | Jev 3回 + LLM 1回 |
 | 題材候補の収集 | `npm run subject:mine -- --repo owner/name [--limit 60]` | `scripts/subject/mine.mts` | GitHub |
 | 題材候補の順位 | `npm run subject:rank -- --in docs/eval/subject-candidates/x.jsonl` | `scripts/subject/rank.mts` | Jev 1回/候補 |
+
+> `docs/eval/subject-candidates/` は採掘した外部イシューの本文（第三者のメールアドレスを含む）なので Git に入れない。`subject:mine` で再生成する。
 | 自然言語リント（全体） | `npm run lint:jev:check` | jev-lint, `rules/` | Jev 約40回, $0.007 |
 | 差分だけ | `npm run lint:jev:review`（`--base master`） | 同上 | 数回 |
 | ルールの回帰（無料） | `npm run lint:jev:replay` | baseline.json | なし |

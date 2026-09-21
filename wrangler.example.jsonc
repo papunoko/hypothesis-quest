@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hypothesis-quest",
+  "account_id": "YOUR_CLOUDFLARE_ACCOUNT_ID",
+  "main": "custom-worker.ts",
+  "compatibility_date": "2026-09-20",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "example.com/*", "zone_name": "example.com" }],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS", "run_worker_first": true },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "hypothesis-quest" }],
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "hypothesis-quest",
+    "database_id": "YOUR_D1_DATABASE_ID",
+    "migrations_dir": "migrations"
+  }],
+  "vars": { "OLLAMA_MODEL": "gemma4:31b", "PUBLIC_UNTIL": "2026-10-01T00:00:00+09:00" },
+  "ratelimits": [
+    { "name": "READ_LIMITER", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } },
+    { "name": "AI_LIMITER", "namespace_id": "1002", "simple": { "limit": 20, "period": 60 } }
+  ],
+  "observability": { "enabled": true }
+}

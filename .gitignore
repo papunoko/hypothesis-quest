@@ -12,6 +12,12 @@ data/
 .dev.vars*
 !.dev.vars.example
 
+# 本番の識別子を含むため公開しない（ローカルに実体を保持。雛形は wrangler.example.jsonc）
+wrangler.jsonc
+
+# 採掘した外部イシュー本文（第三者のメールアドレスを含む。ローカル生成物）
+docs/eval/subject-candidates/
+
 # jev-lint
 .jev-lint-cache.json
 rules/**/last.json

@@ -14,6 +14,7 @@
 ## 構成
 
 - `wrangler.jsonc`: Worker `hypothesis-quest`、Worker Route `ebiharadev.org/*`（apexのみ）。既存のプロキシDNSを維持。workers.dev/プレビューURLは無効。
+  **`wrangler.jsonc` は Git に入れない**（2026-09-21、公開リポジトリ化にあたり履歴からも削除）。本番の `account_id` / `database_id` を含むため、実体はこのPCのローカルにのみ置く。複製元は `wrangler.example.jsonc`（識別子は差し替え用のプレースホルダ）。
 - `open-next.config.ts`: OpenNext変換。ISRを使わないためR2キャッシュは未使用。
 - `DB`: D1。帳面と提出をセッション別に保存。リクエスト単位のD1セッションで読み書きの整合性を維持。
 - `migrations/0001_notebook.sql`: 初期スキーマ。リクエスト中にはmigrationを実行しない。
